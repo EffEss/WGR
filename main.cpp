@@ -232,6 +232,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, LPWSTR, int nShow) {
     wc.lpszClassName = L"WeatherGlanceLite";
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = CreateSolidBrush(RGB(13, 17, 23));
+    wc.hIcon = LoadIconW(hInst, MAKEINTRESOURCEW(101));
     RegisterClassW(&wc);
     g_hwnd = CreateWindowExW(0, L"WeatherGlanceLite", L"Weather Radar Glance",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 700, 580,

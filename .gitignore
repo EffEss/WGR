@@ -9,3 +9,4 @@ radar/
 *.res
 *.pdb
 *.ilk
+*.calibration
