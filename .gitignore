@@ -1,0 +1,9 @@
+deps/
+out/
+Cache/
+radar/
+*.zip
+*.obj
+*.res
+*.pdb
+*.ilk

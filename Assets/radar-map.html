@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Weather Radar Glance</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/proj4@2.12.1/dist/proj4.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif; color: #e0e0e0; }
+#map { width: 100%; height: 100%; background: #0D1117; }
+.leaflet-container { background: #0D1117 !important; }
+.leaflet-top { top: 52px !important; }
+.leaflet-control-attribution { display: none !important; }
+
+/* ── Floating toolbars ──────────────────────────────────────────── */
+#toolbar {
+  position: fixed; top: 6px; left: 10px; right: 148px; z-index: 9000;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 8px;
+  background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  -webkit-app-region: drag;
+}
+#toolbar .title { font-weight: 600; font-size: 13px; white-space: nowrap; }
+#toolbar .title svg { vertical-align: -2px; margin-right: 4px; }
+#regionTitle { flex: 1; text-align: center; font-size: 12px; color: #aaa;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#toolbar .btns { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+.tb { padding: 4px 8px; font-size: 12px; border: none; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: #ccc; cursor: pointer; white-space: nowrap; }
+.tb:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.tb:active { background: rgba(0,120,212,0.4); }
+
+#bottombar {
+  position: fixed; bottom: 6px; left: 10px; right: 10px; z-index: 9000;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 8px;
+  background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+#regionBtns { display: flex; gap: 2px; align-items: center; }
+#regionBtns .lbl { font-size: 11px; color: rgba(255,255,255,0.5); margin-right: 4px; }
+.rb { padding: 3px 6px; font-size: 11px; border: none; border-radius: 4px;
+  background: transparent; color: #aaa; cursor: pointer; }
+.rb:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.rb.active { background: rgba(0,120,212,0.7); color: #fff; }
+#statusArea { margin-left: auto; display: flex; gap: 10px; font-size: 11px; color: #888; }
+
+/* ── Loading spinner ──────────────────────────────────────────── */
+#spinner {
+  display: none; position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); z-index: 9001;
+  width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #0078d4; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* ── State tooltip ──────────────────────────────────────────── */
+.state-tooltip {
+  background: rgba(30,30,46,0.92); color: #fff;
+  border: 1px solid rgba(0,120,212,0.6); border-radius: 6px;
+  padding: 4px 10px; font: 600 13px "Segoe UI", sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* ── Calibration panels ──────────────────────────────────────── */
+#calibPanel, #stateCalibPanel {
+  display: none; position: fixed; bottom: 60px; z-index: 10001;
+  background: rgba(20,20,30,0.95); border: 1px solid rgba(0,255,136,0.4);
+  border-radius: 10px; padding: 12px 18px; color: #e0e0e0;
+  font: 12px "Cascadia Code","Consolas",monospace;
+  min-width: 420px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+#calibPanel { left: 10px; }
+#stateCalibPanel { right: 10px; }
+.cp h3 { margin: 0 0 8px; color: #00ff88; font-size: 14px; }
+.cp .row { display: flex; gap: 14px; margin: 4px 0; align-items: center; }
+.cp label { color: #aaa; width: 40px; text-align: right; }
+.cp input[type=range] { flex: 1; accent-color: #00ff88; }
+.cp .val { color: #00ff88; width: 80px; text-align: left; }
+.cp button { margin-top: 8px; padding: 6px 16px; background: #00ff88; color: #111;
+  border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.cp button:hover { background: #33ffaa; }
+.cp .out { margin-top: 8px; padding: 8px; background: #111; border-radius: 6px;
+  white-space: pre; font-size: 11px; color: #00ff88; user-select: all;
+  max-height: 140px; overflow-y: auto; }
+.cp .sep { margin: 6px 0 4px; color: #888; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- ── Floating top toolbar ──────────────────────────────────── -->
+<div id="toolbar">
+  <span class="title"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><text x="0" y="13" font-size="14">☁</text></svg>Weather Radar Glance</span>
+  <span id="regionTitle">USA National Radar</span>
+  <div class="btns">
+    <button class="tb" onclick="loadUSA()" title="Show national radar">🌎 USA</button>
+    <button class="tb" onclick="refreshCurrent()" title="Re-download current radar">↻</button>
+    <button class="tb" onclick="clearCache()" title="Delete all cached GIFs">🗑 Cache</button>
+  </div>
+</div>
+
+<!-- ── Floating bottom bar ───────────────────────────────────── -->
+<div id="bottombar">
+  <div id="regionBtns">
+    <span class="lbl">Region</span>
+  </div>
+  <div id="statusArea">
+    <span id="statusText">Ready</span>
+    <span id="cacheStatus"></span>
+  </div>
+</div>
+
+<!-- ── Loading spinner ───────────────────────────────────────── -->
+<div id="spinner"></div>
+
+<!-- ── Map ────────────────────────────────────────────────────── -->
+<div id="map"></div>
+
+<!-- ── Calibration panel (LCC projection) ────────────────────── -->
+<div id="calibPanel" class="cp">
+  <h3>🎯 Projection Calibration</h3>
+  <div class="sep">─── Projection Curvature ───</div>
+  <div class="row"><label>lat₀</label><input type="range" id="sliderLat0" min="20" max="70" step="0.1"/><span class="val" id="valLat0"></span></div>
+  <div class="row"><label>lat₁</label><input type="range" id="sliderLat1" min="15" max="89" step="0.1"/><span class="val" id="valLat1"></span></div>
+  <div class="row"><label>lat₂</label><input type="range" id="sliderLat2" min="35" max="89" step="0.1"/><span class="val" id="valLat2"></span></div>
+  <div class="row"><label>lon₀</label><input type="range" id="sliderLon0" min="-110" max="-85" step="0.1"/><span class="val" id="valLon0"></span></div>
+  <div class="sep">─── Rotation (degrees) ───</div>
+  <div class="row"><label>rot</label><input type="range" id="sliderRot" min="-10" max="10" step="0.05"/><span class="val" id="valRot"></span></div>
+  <div class="sep">─── Bounding Box (meters) ───</div>
+  <div class="row"><label>Left</label><input type="range" id="sliderLeft" min="-5000000" max="-1500000" step="5000"/><span class="val" id="valLeft"></span></div>
+  <div class="row"><label>Right</label><input type="range" id="sliderRight" min="1500000" max="5000000" step="5000"/><span class="val" id="valRight"></span></div>
+  <div class="row"><label>Top</label><input type="range" id="sliderTop" min="1500000" max="4000000" step="5000"/><span class="val" id="valTop"></span></div>
+  <div class="row"><label>Bot</label><input type="range" id="sliderBottom" min="-4000000" max="-1000000" step="5000"/><span class="val" id="valBottom"></span></div>
+  <div style="margin-top:6px;display:flex;gap:8px;">
+    <button onclick="copyCalibOutput()">📋 Copy Config</button>
+    <button onclick="resetCalib()" style="background:#ff6666;color:#fff;">↩ Reset</button>
+  </div>
+  <div class="out" id="calibOutput"></div>
+</div>
+
+<!-- ── State-level calibration panel ─────────────────────────── -->
+<div id="stateCalibPanel" class="cp">
+  <h3>🎯 State View Calibration — <span id="stateCalibName">??</span></h3>
+  <div class="row"><label>scale</label><input type="range" id="sliderStateScale" min="0.5" max="3.0" step="0.01"/><span class="val" id="valStateScale"></span></div>
+  <div class="row"><label>offX</label><input type="range" id="sliderStateOffX" min="-200" max="200" step="1"/><span class="val" id="valStateOffX"></span></div>
+  <div class="row"><label>offY</label><input type="range" id="sliderStateOffY" min="-200" max="200" step="1"/><span class="val" id="valStateOffY"></span></div>
+  <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="copyAllStateCalib()">📋 Copy All States</button>
+    <button onclick="resetStateCalib()" style="background:#ff6666;color:#fff;">↩ Reset This</button>
+    <button onclick="clearAllStateCalib()" style="background:#ff4444;color:#fff;">🗑 Clear All</button>
+  </div>
+  <div class="out" id="stateCalibOutput"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  RADAR SERVICE — replaces C# RadarService.cs
+// ═══════════════════════════════════════════════════════════════════
+
+const RADAR_BASE = 'https://sirocco.accuweather.com/nx_mosaic_640x480_public/sir/';
+const CACHE_NAME = 'radar-v1';
+
+const RegionFiles = {
+  NORCAL:'inmasirCAn.gif', CENTRALCAL:'inmasirCAc.gif', SOCAL:'inmasirCAs.gif',
+  TXW:'inmasirTXw.gif', TXE:'inmasirTXe.gif', TXS:'inmasirTXs.gif',
+  NORTHEAST:'inmasirne.gif', NORTHCENTRAL:'inmasirnc.gif', NORTHWEST:'inmasirnw.gif',
+  SOUTHEAST:'inmasirse.gif', SOUTHCENTRAL:'inmasirsc.gif', SOUTHWEST:'inmasirsw.gif',
+  USA:'inmasirus_.gif'
+};
+
+const RegionKeys = ['USA','NORTHEAST','NORTHWEST','NORTHCENTRAL','SOUTHEAST','SOUTHWEST','SOUTHCENTRAL'];
+const RegionDisplay = {
+  USA:'🌎 USA', NORTHEAST:'NE', NORTHWEST:'NW', NORTHCENTRAL:'NC',
+  SOUTHEAST:'SE', SOUTHWEST:'SW', SOUTHCENTRAL:'SC',
+  NORCAL:'N. California (NorCal)', CENTRALCAL:'C. California', SOCAL:'S. California (SoCal)'
+};
+
+const StateNames = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
+  CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',
+  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',
+  LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',
+  MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
+  NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',
+  OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
+  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',
+  WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'
+};
+// Reverse: name -> abbreviation
+const NameToAbbrev = {};
+for (const [k,v] of Object.entries(StateNames)) NameToAbbrev[v] = k;
+
+function getRegionFallback(st) {
+  const m = {
+    ME:'NORTHEAST',VT:'NORTHEAST',NH:'NORTHEAST',MA:'NORTHEAST',CT:'NORTHEAST',RI:'NORTHEAST',
+    NY:'NORTHEAST',NJ:'NORTHEAST',PA:'NORTHEAST',DE:'NORTHEAST',MD:'NORTHEAST',DC:'NORTHEAST',
+    WA:'NORTHWEST',OR:'NORTHWEST',ID:'NORTHWEST',MT:'NORTHWEST',WY:'NORTHWEST',
+    MN:'NORTHCENTRAL',WI:'NORTHCENTRAL',MI:'NORTHCENTRAL',ND:'NORTHCENTRAL',SD:'NORTHCENTRAL',
+    NE:'NORTHCENTRAL',IA:'NORTHCENTRAL',
+    VA:'SOUTHEAST',WV:'SOUTHEAST',NC:'SOUTHEAST',SC:'SOUTHEAST',GA:'SOUTHEAST',
+    FL:'SOUTHEAST',KY:'SOUTHEAST',TN:'SOUTHEAST',
+    TX:'SOUTHCENTRAL',OK:'SOUTHCENTRAL',AR:'SOUTHCENTRAL',LA:'SOUTHCENTRAL',MO:'SOUTHCENTRAL',
+    KS:'SOUTHCENTRAL',MS:'SOUTHCENTRAL',AL:'SOUTHCENTRAL',
+    CA:'SOCAL',
+    NV:'SOUTHWEST',UT:'SOUTHWEST',CO:'SOUTHWEST',AZ:'SOUTHWEST',NM:'SOUTHWEST',HI:'SOUTHWEST',
+    AK:'USA'
+  };
+  return m[st] || null;
+}
+
+function resolveRadarUrl(region) {
+  if (RegionFiles[region]) return RADAR_BASE + RegionFiles[region];
+  return RADAR_BASE + 'inmasir' + region.toLowerCase() + '_.gif';
+}
+
+var _dlCallbacks = {};
+if (window.chrome && window.chrome.webview) {
+  window.chrome.webview.addEventListener('message', function(e) {
+    var d = e.data;
+    if (d.type === 'radarReady' && _dlCallbacks[d.region]) {
+      _dlCallbacks[d.region]({ url: 'https://radar-cache.local/' + d.file + '?t=' + Date.now(), cached: false, time: new Date(), error: null });
+      delete _dlCallbacks[d.region];
+    } else if (d.type === 'radarError' && _dlCallbacks[d.region]) {
+      _dlCallbacks[d.region]({ url: null, cached: false, time: null, error: d.error });
+      delete _dlCallbacks[d.region];
+    } else if (d.type === 'cacheCleared') { setStatus('Cache cleared.'); }
+  });
+}
+function requestDownload(region) {
+  return new Promise(function(resolve) {
+    _dlCallbacks[region] = resolve;
+    window.chrome.webview.postMessage('DOWNLOAD|' + region + '|' + resolveRadarUrl(region));
+  });
+}
+
+async function fetchRadarGif(region, force) {
+  var result = await requestDownload(region);
+  if (!result.url) {
+    var fb = getRegionFallback(region.toUpperCase());
+    if (!fb) return { url: null, cached: false, time: null, error: 'Not available' };
+    var r2 = await requestDownload(fb);
+    if (!r2.url) return { url: null, cached: false, time: null, error: 'Fallback failed' };
+    r2.error = 'Showing ' + (RegionDisplay[fb] || fb);
+    return r2;
+  }
+  return result;
+}
+
+function clearCache() { window.chrome.webview.postMessage('CLEARCACHE|'); }
+function updateCacheStatus() { document.getElementById('cacheStatus').textContent = ''; }
+
+let _currentKey = 'USA';
+let _selectedRegionBtn = null;
+
+function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
+
+function fmtTime(d) {
+  if (!d) return '';
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Build region buttons ────────────────────────────────────────
+(function buildRegionButtons() {
+  const container = document.getElementById('regionBtns');
+  RegionKeys.forEach(key => {
+    if (key === 'USA') return;
+    const btn = document.createElement('button');
+    btn.className = 'rb';
+    btn.textContent = RegionDisplay[key] || key;
+    btn.dataset.region = key;
+    btn.onclick = () => {
+      clearRegionSelection();
+      _selectedRegionBtn = btn;
+      btn.classList.add('active');
+      clearMapSelection();
+      loadRadar(key, false, RegionDisplay[key] || key);
+    };
+    container.appendChild(btn);
+  });
+})();
+
+function clearRegionSelection() {
+  if (_selectedRegionBtn) { _selectedRegionBtn.classList.remove('active'); _selectedRegionBtn = null; }
+}
+
+function loadUSA() {
+  clearRegionSelection();
+  clearMapSelection();
+  loadRadar('USA', false);
+}
+
+function refreshCurrent() {
+  loadRadar(_currentKey, true);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  MAP — GIF-as-map with CRS.Simple
+// ═══════════════════════════════════════════════════════════════════
+
+const IMG_W = 640, IMG_H = 480;
+const gifBounds = [[0, 0], [IMG_H, IMG_W]];
+
+const map = L.map('map', {
+  crs: L.CRS.Simple, minZoom: -1, maxZoom: 4,
+  zoomSnap: 0.25, zoomDelta: 0.5,
+  maxBounds: [[-100, -100], [IMG_H + 100, IMG_W + 100]],
+  maxBoundsViscosity: 0.8
+});
+map.fitBounds(gifBounds);
+
+// ── LCC projection ─────────────────────────────────────────────
+const LCC_PARAMS = { lat_0: 37.8, lon_0: -97.4, lat_1: 89.0, lat_2: 89.0 };
+function buildLCC() {
+  return '+proj=lcc +lat_0=' + LCC_PARAMS.lat_0 + ' +lon_0=' + LCC_PARAMS.lon_0
+    + ' +lat_1=' + LCC_PARAMS.lat_1 + ' +lat_2=' + LCC_PARAMS.lat_2
+    + ' +a=6371200 +b=6371200 +units=m +no_defs';
+}
+let LCC = buildLCC();
+const WGS = 'EPSG:4326';
+
+let ROTATION_DEG = 0.7;
+const PROJ = { left: -3780000, right: 3750000, top: 3135000, bottom: -2585000 };
+let PROJ_W = PROJ.right - PROJ.left;
+let PROJ_H = PROJ.top - PROJ.bottom;
+
+function geoToPixel(lng, lat) {
+  let [x, y] = proj4(WGS, LCC, [lng, lat]);
+  if (ROTATION_DEG !== 0) {
+    const cx = (PROJ.left + PROJ.right) / 2, cy = (PROJ.top + PROJ.bottom) / 2;
+    const rad = ROTATION_DEG * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const dx = x - cx, dy = y - cy;
+    x = cx + dx * cos - dy * sin;
+    y = cy + dx * sin + dy * cos;
+  }
+  return [(y - PROJ.bottom) / PROJ_H * IMG_H, (x - PROJ.left) / PROJ_W * IMG_W];
+}
+
+// ── States without own GIF / redirects / sub-regions ────────────
+const _noStateGif = new Set(['AK','DC','HI','RI']);
+const _stateToRegion = { AK:'USA', DC:'NORTHEAST', RI:'NORTHEAST', HI:'SOUTHWEST' };
+const _regionDisplayNames = { USA:'USA',NORTHEAST:'NE',NORTHWEST:'NW',NORTHCENTRAL:'NC',
+  SOUTHEAST:'SE',SOUTHWEST:'SW',SOUTHCENTRAL:'SC' };
+const _stateRedirect = { CT:'NY',DE:'VA',MA:'NY',MD:'VA',ME:'NH',NC:'SC',NJ:'PA',VT:'NY',WV:'VA' };
+const _subRegionConfig = {
+  CA: function(rx, ry) {
+    if (ry > 0.60) return { key:'NORCAL', name:'N. California (NorCal)' };
+    if (ry > 0.30) return { key:'CENTRALCAL', name:'C. California' };
+    return { key:'SOCAL', name:'S. California (SoCal)' };
+  },
+  TX: function(rx, ry) {
+    if (ry < 0.35) return { key:'TXS', name:'Texas South' };
+    if (rx < 0.50) return { key:'TXW', name:'Texas West' };
+    return { key:'TXE', name:'Texas East' };
+  }
+};
+function getRelPos(layer, latlng) {
+  const b = layer.getBounds();
+  return { x: (latlng.lng - b.getWest()) / (b.getEast() - b.getWest()),
+           y: (latlng.lat - b.getSouth()) / (b.getNorth() - b.getSouth()) };
+}
+
+// ── Overlays ────────────────────────────────────────────────────
+let nationalOverlay = null, stateOverlay = null;
+let _stateViewActive = false, _stateViewAbbrev = '', _stateViewCenter = null, _stateViewBaseScale = 1;
+let _regionViewActive = false, _regionViewKey = '';
+
+// ── Per-region calibration ──────────────────────────────────────
+function makeDefaultRegionCalib() {
+  return { lat_0:37.8,lon_0:-97.4,lat_1:89.0,lat_2:89.0,rotation:0.7,
+    left:-3780000,right:3750000,top:3135000,bottom:-2585000,scale:1.0,offX:0,offY:0 };
+}
+const _defaultRegionCalib = {};
+['NORTHEAST','NORTHWEST','NORTHCENTRAL','SOUTHEAST','SOUTHWEST','SOUTHCENTRAL'].forEach(k =>
+  _defaultRegionCalib[k] = makeDefaultRegionCalib());
+const regionCalibMap = {};
+for (const k of Object.keys(_defaultRegionCalib)) regionCalibMap[k] = Object.assign({}, _defaultRegionCalib[k]);
+try { const s = JSON.parse(localStorage.getItem('regionCalibMap'));
+  if (s) for (const k of Object.keys(s)) regionCalibMap[k] = Object.assign(makeDefaultRegionCalib(), s[k]);
+} catch(e) {}
+function saveRegionCalib() { try { localStorage.setItem('regionCalibMap', JSON.stringify(regionCalibMap)); } catch(e) {} }
+
+function geoToPixelRegion(lng, lat, rp) {
+  const lcc = '+proj=lcc +lat_0='+rp.lat_0+' +lon_0='+rp.lon_0+' +lat_1='+rp.lat_1+' +lat_2='+rp.lat_2+' +a=6371200 +b=6371200 +units=m +no_defs';
+  let [x, y] = proj4('EPSG:4326', lcc, [lng, lat]);
+  if (rp.rotation !== 0) {
+    const cx=(rp.left+rp.right)/2, cy=(rp.top+rp.bottom)/2, rad=rp.rotation*Math.PI/180;
+    const cos=Math.cos(rad), sin=Math.sin(rad), dx=x-cx, dy=y-cy;
+    x=cx+dx*cos-dy*sin; y=cy+dx*sin+dy*cos;
+  }
+  const pw=rp.right-rp.left, ph=rp.top-rp.bottom;
+  let px=(x-rp.left)/pw*IMG_W, py=(y-rp.bottom)/ph*IMG_H;
+  px=(px-IMG_W/2)*rp.scale+IMG_W/2+rp.offX;
+  py=(py-IMG_H/2)*rp.scale+IMG_H/2+rp.offY;
+  return [py, px];
+}
+
+// ── Per-state calibration ───────────────────────────────────────
+const _defaultStateCalib = {
+  AL:{scale:1.55,offX:-22,offY:-37},AR:{scale:1.31,offX:16,offY:30},AZ:{scale:1.62,offX:-20,offY:-22},
+  CENTRALCAL:{scale:2.68,offX:91,offY:-53},CO:{scale:1.14,offX:-3,offY:25},CT:{scale:0.58,offX:70,offY:13},
+  FL:{scale:1.55,offX:38,offY:6},GA:{scale:1.41,offX:3,offY:20},IA:{scale:1.21,offX:-11,offY:17},
+  ID:{scale:1.71,offX:42,offY:41},IL:{scale:1.78,offX:-25,offY:-56},IN:{scale:1.44,offX:27,offY:22},
+  KS:{scale:1.41,offX:25,offY:22},KY:{scale:1.55,offX:23,offY:8},LA:{scale:1.60,offX:-8,offY:-5},
+  MA:{scale:0.50,offX:152,offY:-11},MD:{scale:0.50,offX:28,offY:-198},ME:{scale:0.54,offX:164,offY:88},
+  MI:{scale:2.16,offX:-102,offY:100},MN:{scale:1.79,offX:42,offY:39},MO:{scale:1.57,offX:36,offY:11},
+  MS:{scale:1.57,offX:-27,offY:2},MT:{scale:1.33,offX:-20,offY:-39},NC:{scale:0.62,offX:153,offY:138},
+  ND:{scale:1.06,offX:-3,offY:-30},NE:{scale:1.32,offX:-5,offY:13},NH:{scale:0.85,offX:-100,offY:-33},
+  NM:{scale:1.41,offX:-22,offY:-5},NORCAL:{scale:2.78,offX:13,offY:-166},NV:{scale:1.68,offX:-31,offY:28},
+  NY:{scale:1.60,offX:0,offY:-8},OH:{scale:1.13,offX:-14,offY:-19},OK:{scale:1.29,offX:5,offY:2},
+  OR:{scale:1.03,offX:-17,offY:8},PA:{scale:1.39,offX:-14,offY:9},SC:{scale:0.87,offX:-95,offY:-89},
+  SD:{scale:1.27,offX:-3,offY:-11},SOCAL:{scale:3.00,offX:-122,offY:114},
+  SOUTHCENTRAL:{scale:1.0,offX:0,offY:0},TN:{scale:1.59,offX:27,offY:22},TX:{scale:1.39,offX:-69,offY:-44},
+  TXE:{scale:2.66,offX:-83,offY:-52},TXS:{scale:2.59,offX:-86,offY:186},TXW:{scale:2.40,offX:48,offY:-91},
+  UT:{scale:1.56,offX:-8,offY:23},VA:{scale:1.61,offX:-3,offY:-14},WA:{scale:1.22,offX:-28,offY:80},
+  WI:{scale:1.39,offX:-22,offY:-31},WY:{scale:0.97,offX:-5,offY:27}
+};
+const stateCalibMap = Object.assign({}, _defaultStateCalib);
+try { const s = JSON.parse(localStorage.getItem('stateCalibMap'));
+  if (s) Object.assign(stateCalibMap, s);
+} catch(e) {}
+function saveStateCalib() { try { localStorage.setItem('stateCalibMap', JSON.stringify(stateCalibMap)); } catch(e) {} }
+
+// ── Radar display functions ─────────────────────────────────────
+function setNationalRadar(url) {
+  if (stateOverlay) { map.removeLayer(stateOverlay); stateOverlay = null; }
+  if (nationalOverlay) map.removeLayer(nationalOverlay);
+  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  nationalOverlay.addTo(map);
+  if (_stateViewActive || _regionViewActive) {
+    _stateViewActive = false; _stateViewAbbrev = '';
+    _regionViewActive = false; _regionViewKey = '';
+    document.getElementById('stateCalibPanel').style.display = 'none';
+    if (calibActive) { document.getElementById('calibPanel').style.display = 'block'; initCalibSliders(); updateCalibOutput(); }
+    rebuildPolygons(geoToPixel);
+  }
+  if (statesLayer) statesLayer.bringToFront();
+}
+
+function setRegionRadar(url, regionKey) {
+  if (stateOverlay) { map.removeLayer(stateOverlay); stateOverlay = null; }
+  if (nationalOverlay) map.removeLayer(nationalOverlay);
+  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  nationalOverlay.addTo(map);
+  _stateViewActive = false; _stateViewAbbrev = '';
+  _regionViewActive = true; _regionViewKey = regionKey || '';
+  if (!regionCalibMap[regionKey]) regionCalibMap[regionKey] = makeDefaultRegionCalib();
+  applyRegionProjection(regionCalibMap[regionKey]);
+  if (calibActive) showRegionCalibPanels(regionKey);
+  map.flyToBounds(gifBounds, { duration: 0.5 });
+}
+
+function applyRegionProjection(rp) { rebuildPolygons(function(lng,lat){ return geoToPixelRegion(lng,lat,rp); }); }
+
+const stateBoundsMap = {};
+const subRegionBounds = {};
+function initSubRegionBounds() {
+  const ca=stateBoundsMap['CA'], tx=stateBoundsMap['TX'];
+  if(ca){subRegionBounds['NORCAL']=ca;subRegionBounds['CENTRALCAL']=ca;subRegionBounds['SOCAL']=ca;}
+  if(tx){subRegionBounds['SOUTHCENTRAL']=tx;subRegionBounds['TXW']=tx;subRegionBounds['TXE']=tx;subRegionBounds['TXS']=tx;}
+}
+
+function setStateRadar(url, abbrev) {
+  let sb = stateBoundsMap[abbrev] || subRegionBounds[abbrev];
+  if (!sb) { setNationalRadar(url); return; }
+  _stateViewActive = true; _stateViewAbbrev = abbrev;
+  if (nationalOverlay) nationalOverlay.setOpacity(0);
+  if (stateOverlay) map.removeLayer(stateOverlay);
+  stateOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  stateOverlay.addTo(map);
+  _stateViewCenter = { lat:(sb.minLat+sb.maxLat)/2, lng:(sb.minLng+sb.maxLng)/2 };
+  const cosLat = Math.cos(_stateViewCenter.lat * Math.PI / 180);
+  const geoW = (sb.maxLng - sb.minLng) * cosLat * 2.3;
+  const geoH = (sb.maxLat - sb.minLat) * 2.3;
+  _stateViewBaseScale = IMG_H / (geoW/geoH > 4/3 ? geoW*3/4 : geoH);
+  const calib = stateCalibMap[abbrev] || { scale:1, offX:0, offY:0 };
+  applyStateProjection(calib);
+  if (calibActive) showStateCalibPanel(abbrev);
+  map.flyToBounds(gifBounds, { duration: 0.5 });
+}
+
+function applyStateProjection(calib) {
+  const scale = _stateViewBaseScale * calib.scale, offX = calib.offX||0, offY = calib.offY||0;
+  const center = _stateViewCenter;
+  rebuildPolygons(function(lng, lat) {
+    const cosLat = Math.cos(center.lat * Math.PI / 180);
+    return [
+      (lat - center.lat) * scale + IMG_H / 2 + offY,
+      (lng - center.lng) * scale * cosLat + IMG_W / 2 + offX
+    ];
+  });
+}
+
+function clearStateOverlay() {
+  if (stateOverlay) { map.removeLayer(stateOverlay); stateOverlay = null; }
+  if (nationalOverlay) nationalOverlay.setOpacity(1);
+  if (_stateViewActive || _regionViewActive) {
+    _stateViewActive = false; _regionViewActive = false; _regionViewKey = '';
+    rebuildPolygons(geoToPixel);
+  }
+}
+function flyToUSA() { clearStateOverlay(); map.flyToBounds(gifBounds, {duration:0.5}); }
+
+// ── GeoJSON layer ───────────────────────────────────────────────
+let statesLayer = null, selectedLayer = null;
+const defaultStyle = { color:'transparent', weight:0, fillColor:'transparent', fillOpacity:0 };
+const calibHoverStyle = { color:'rgba(0,120,212,0.7)', weight:2, fillColor:'rgba(0,120,212,0.1)', fillOpacity:1 };
+const calibSelectedStyle = { color:'rgba(0,120,212,1)', weight:2.5, fillColor:'rgba(0,120,212,0.15)', fillOpacity:1 };
+
+function bindFeatureInteraction(feature, layer) {
+  const abbrev = feature.properties.STUSPS || '';
+  const name = feature.properties.NAME || feature.properties.name || abbrev;
+  if (abbrev && feature.properties._geoBounds) stateBoundsMap[abbrev] = feature.properties._geoBounds;
+
+  const subFn = _subRegionConfig[abbrev];
+  if (subFn) {
+    layer.bindTooltip('', { className:'state-tooltip', sticky:true, direction:'top', offset:[0,-10] });
+    layer.on('mousemove', e => { const r=getRelPos(layer,e.latlng); layer.setTooltipContent(subFn(r.x,r.y).name); });
+  } else {
+    const tip = _noStateGif.has(abbrev) ? (_regionDisplayNames[_stateToRegion[abbrev]]||abbrev)
+      : (_stateRedirect[abbrev] ? name+' \u2192 '+_stateRedirect[abbrev]
+        : name+(abbrev?' ('+abbrev+')':''));
+    if (tip) layer.bindTooltip(tip, { className:'state-tooltip', sticky:true, direction:'top', offset:[0,-10] });
+  }
+  layer.on('mouseover', ()=>{ if(calibActive && layer!==selectedLayer) layer.setStyle(calibHoverStyle); });
+  layer.on('mouseout', ()=>{ if(calibActive && layer!==selectedLayer) layer.setStyle(defaultStyle); });
+  layer.on('click', function(e) {
+    if (calibActive) { if(selectedLayer) selectedLayer.setStyle(defaultStyle); selectedLayer=layer; layer.setStyle(calibSelectedStyle); }
+    let clickAbbrev = abbrev, clickName = name;
+    if (subFn) { const r=getRelPos(layer,e.latlng); const sub=subFn(r.x,r.y); clickAbbrev=sub.key; clickName=sub.name; }
+    handleStateClick(clickAbbrev, clickName);
+  });
+}
+
+function handleStateClick(abbrev, name) {
+  clearRegionSelection();
+  if (_noStateGif.has(abbrev)) {
+    const region = _stateToRegion[abbrev] || 'USA';
+    const regionDisplay = RegionDisplay[region] || region;
+    loadRadar(region, false, name + ' \u2192 ' + regionDisplay);
+  } else if (_stateRedirect[abbrev]) {
+    const redir = _stateRedirect[abbrev];
+    const redirName = StateNames[redir] || redir;
+    loadStateRadar(redir, name + ' \u2192 ' + redirName);
+  } else {
+    loadStateRadar(abbrev, name);
+  }
+}
+
+function clearSelection() { if(selectedLayer){selectedLayer.setStyle(defaultStyle);selectedLayer=null;} }
+function clearMapSelection() { clearSelection(); }
+
+// ── Polygon rebuild ─────────────────────────────────────────────
+let _origGeoJSON = null;
+
+function rebuildPolygons(projFn) {
+  if (!_origGeoJSON) return;
+  if (statesLayer) map.removeLayer(statesLayer);
+  selectedLayer = null;
+  const clone = JSON.parse(_origGeoJSON);
+  for (const f of clone.features) {
+    let minLat=90,maxLat=-90,minLng=180,maxLng=-180;
+    (function walk(c){if(typeof c[0]==='number'){const lng=c[0],lat=c[1];
+      if(lat<minLat)minLat=lat;if(lat>maxLat)maxLat=lat;if(lng<minLng)minLng=lng;if(lng>maxLng)maxLng=lng;
+      const[py,px]=projFn(lng,lat);c[0]=px;c[1]=py;}else{for(const x of c)walk(x);}})(f.geometry.coordinates);
+    f.properties._geoBounds={minLat,maxLat,minLng,maxLng};
+  }
+  statesLayer = L.geoJSON(clone, {
+    coordsToLatLng: c => L.latLng(c[1], c[0]),
+    style: calibActive ? { color:'rgba(0,255,136,0.6)',weight:1.5,fillColor:'transparent',fillOpacity:0 } : defaultStyle,
+    onEachFeature: bindFeatureInteraction
+  }).addTo(map);
+}
+
+// ── Load radar (main entry) ─────────────────────────────────────
+async function loadRadar(key, force, displayName) {
+  _currentKey = key;
+  displayName = displayName || key;
+  document.getElementById('regionTitle').textContent = key === 'USA' ? 'USA National Radar' : displayName + ' — Radar';
+  document.getElementById('spinner').style.display = 'block';
+  setStatus('Loading ' + displayName + '...');
+
+  const result = await fetchRadarGif(key, force);
+  document.getElementById('spinner').style.display = 'none';
+
+  if (result.url) {
+    if (key === 'USA') { setNationalRadar(result.url); flyToUSA(); }
+    else setRegionRadar(result.url, key);
+    const age = result.cached ? 'cached' : 'downloaded';
+    const note = result.error ? ' (' + result.error + ')' : '';
+    setStatus(displayName + ' \u00b7 ' + age + ' \u00b7 ' + fmtTime(result.time) + note);
+  } else {
+    setStatus(result.error || 'Error');
+  }
+  updateCacheStatus();
+}
+
+async function loadStateRadar(abbrev, name) {
+  _currentKey = abbrev;
+  document.getElementById('regionTitle').textContent = (name||abbrev) + ' (' + abbrev + ') — Radar';
+  document.getElementById('spinner').style.display = 'block';
+  setStatus('Loading ' + (name||abbrev) + '...');
+
+  const result = await fetchRadarGif(abbrev, false);
+  document.getElementById('spinner').style.display = 'none';
+
+  if (result.url) {
+    const isFallback = result.error && result.error.startsWith('Showing');
+    if (isFallback) {
+      const regionKey = getRegionFallback(abbrev.toUpperCase()) || 'USA';
+      setRegionRadar(result.url, regionKey);
+    } else {
+      setStateRadar(result.url, abbrev);
+    }
+    const age = result.cached ? 'cached' : 'downloaded';
+    const note = result.error ? ' (' + result.error + ')' : '';
+    setStatus((name||abbrev) + ' \u00b7 ' + age + ' \u00b7 ' + fmtTime(result.time) + note);
+  } else {
+    setStatus(result.error || 'Error');
+  }
+  updateCacheStatus();
+}
+
+// ── GeoJSON loading (replaces C# InjectPostalCodes) ─────────────
+async function initGeoJSON() {
+  try {
+    const resp = await fetch('us-states.geo.json');
+    if (!resp.ok) { setStatus('GeoJSON load failed: HTTP ' + resp.status); return; }
+    const geo = await resp.json();
+    // Inject STUSPS postal codes from state name
+    for (const f of geo.features) {
+      const name = f.properties && f.properties.name;
+      if (name && NameToAbbrev[name]) f.properties.STUSPS = NameToAbbrev[name];
+    }
+    _origGeoJSON = JSON.stringify(geo);
+    rebuildPolygons(geoToPixel);
+    initSubRegionBounds();
+  } catch(e) { setStatus('GeoJSON error: ' + e.message); }
+}
+
+// ── Calibration (godmode easter egg) ────────────────────────────
+let calibActive = false;
+let _konamiBuffer = '';
+const GODMODE = 'godmode';
+
+document.addEventListener('keydown', function(e) {
+  if (e.key.length !== 1) return;
+  _konamiBuffer += e.key.toLowerCase();
+  if (_konamiBuffer.length > GODMODE.length) _konamiBuffer = _konamiBuffer.slice(-GODMODE.length);
+  if (_konamiBuffer === GODMODE) { _konamiBuffer = ''; toggleCalibration(); }
+});
+
+function toggleCalibration() {
+  calibActive = !calibActive;
+  if (calibActive) {
+    if (_stateViewActive) { document.getElementById('calibPanel').style.display='none'; showStateCalibPanel(_stateViewAbbrev); }
+    else if (_regionViewActive) { showRegionCalibPanels(_regionViewKey); }
+    else { document.getElementById('stateCalibPanel').style.display='none'; document.getElementById('calibPanel').style.display='block'; initCalibSliders(); updateCalibOutput(); }
+  } else {
+    document.getElementById('calibPanel').style.display='none';
+    document.getElementById('stateCalibPanel').style.display='none';
+  }
+  if (_stateViewActive) applyStateProjection(stateCalibMap[_stateViewAbbrev]||{scale:1,offX:0,offY:0});
+  else if (_regionViewActive) applyRegionProjection(regionCalibMap[_regionViewKey]);
+  else rebuildPolygons(geoToPixel);
+  setStatus(calibActive ? 'Calibration mode ON' : 'Ready');
+}
+
+function showRegionCalibPanels(regionKey) {
+  const rp = regionCalibMap[regionKey]; if(!rp) return;
+  document.getElementById('calibPanel').style.display = 'block';
+  initRegionLCCSliders(regionKey);
+  showStateCalibPanel(regionKey);
+}
+
+function initRegionLCCSliders(regionKey) {
+  const rp = regionCalibMap[regionKey];
+  const apply = ()=>{ applyRegionProjection(rp); saveRegionCalib(); updateRegionCalibOutput(regionKey); };
+  [{id:'Lat0',key:'lat_0'},{id:'Lat1',key:'lat_1'},{id:'Lat2',key:'lat_2'},{id:'Lon0',key:'lon_0'}].forEach(s=>{
+    const el=document.getElementById('slider'+s.id); el.value=rp[s.key];
+    document.getElementById('val'+s.id).textContent=rp[s.key].toFixed(1)+'\u00b0';
+    el.oninput=function(){rp[s.key]=parseFloat(this.value);document.getElementById('val'+s.id).textContent=rp[s.key].toFixed(1)+'\u00b0';apply();};
+  });
+  const rot=document.getElementById('sliderRot');rot.value=rp.rotation;document.getElementById('valRot').textContent=rp.rotation.toFixed(2)+'\u00b0';
+  rot.oninput=function(){rp.rotation=parseFloat(this.value);document.getElementById('valRot').textContent=rp.rotation.toFixed(2)+'\u00b0';apply();};
+  ['Left','Right','Top','Bottom'].forEach((id,i)=>{
+    const key=['left','right','top','bottom'][i];const el=document.getElementById('slider'+id);el.value=rp[key];
+    document.getElementById('val'+id).textContent=rp[key].toLocaleString();
+    el.oninput=function(){rp[key]=parseInt(this.value);document.getElementById('val'+id).textContent=rp[key].toLocaleString();apply();};
+  });
+  updateRegionCalibOutput(regionKey);
+}
+function updateRegionCalibOutput(rk) {
+  const rp=regionCalibMap[rk],o=document.getElementById('calibOutput');if(!o)return;
+  o.textContent=rk+' LCC: lat_0='+rp.lat_0+' lon_0='+rp.lon_0+' lat_1='+rp.lat_1+' lat_2='+rp.lat_2
+    +'\nrotation: '+rp.rotation+'\nPROJ: L='+rp.left+' R='+rp.right+' T='+rp.top+' B='+rp.bottom
+    +'\nscale: '+rp.scale.toFixed(2)+' offX: '+rp.offX+' offY: '+rp.offY+'\nAuto-saved \u2713';
+}
+
+function initCalibSliders() {
+  [{id:'Lat0',key:'lat_0'},{id:'Lat1',key:'lat_1'},{id:'Lat2',key:'lat_2'},{id:'Lon0',key:'lon_0'}].forEach(s=>{
+    const el=document.getElementById('slider'+s.id);el.value=LCC_PARAMS[s.key];
+    document.getElementById('val'+s.id).textContent=LCC_PARAMS[s.key].toFixed(1)+'\u00b0';
+    el.oninput=function(){LCC_PARAMS[s.key]=parseFloat(this.value);document.getElementById('val'+s.id).textContent=LCC_PARAMS[s.key].toFixed(1)+'\u00b0';LCC=buildLCC();applyCalibration();};
+  });
+  const rot=document.getElementById('sliderRot');rot.value=ROTATION_DEG;document.getElementById('valRot').textContent=ROTATION_DEG.toFixed(2)+'\u00b0';
+  rot.oninput=function(){ROTATION_DEG=parseFloat(this.value);document.getElementById('valRot').textContent=ROTATION_DEG.toFixed(2)+'\u00b0';applyCalibration();};
+  ['Left','Right','Top','Bottom'].forEach((id,i)=>{
+    const key=['left','right','top','bottom'][i];const el=document.getElementById('slider'+id);el.value=PROJ[key];
+    document.getElementById('val'+id).textContent=PROJ[key].toLocaleString();
+    el.oninput=function(){PROJ[key]=parseInt(this.value);document.getElementById('val'+id).textContent=PROJ[key].toLocaleString();applyCalibration();};
+  });
+}
+function applyCalibration() { PROJ_W=PROJ.right-PROJ.left;PROJ_H=PROJ.top-PROJ.bottom;rebuildPolygons(geoToPixel);updateCalibOutput(); }
+function updateCalibOutput() {
+  const o=document.getElementById('calibOutput');if(!o)return;
+  o.textContent='LCC: lat_0='+LCC_PARAMS.lat_0+' lon_0='+LCC_PARAMS.lon_0+' lat_1='+LCC_PARAMS.lat_1+' lat_2='+LCC_PARAMS.lat_2
+    +'\nROTATION_DEG = '+ROTATION_DEG
+    +'\nPROJ: L='+PROJ.left+' R='+PROJ.right+' T='+PROJ.top+' B='+PROJ.bottom;
+}
+function resetCalib() {
+  LCC_PARAMS.lat_0=37.8;LCC_PARAMS.lat_1=89.0;LCC_PARAMS.lat_2=89.0;LCC_PARAMS.lon_0=-97.4;
+  ROTATION_DEG=0.7;LCC=buildLCC();PROJ.left=-3780000;PROJ.right=3750000;PROJ.top=3135000;PROJ.bottom=-2585000;
+  initCalibSliders();applyCalibration();
+}
+function copyCalibOutput() {
+  navigator.clipboard.writeText(document.getElementById('calibOutput').textContent).then(()=>{
+    const b=document.querySelector('#calibPanel button');const o=b.textContent;b.textContent='\u2713 Copied!';setTimeout(()=>b.textContent=o,1500);
+  });
+}
+
+function showStateCalibPanel(abbrev) {
+  const panel=document.getElementById('stateCalibPanel');panel.style.display='block';
+  const isR=_regionViewActive&&abbrev===_regionViewKey;
+  const cm=isR?regionCalibMap:stateCalibMap, sf=isR?saveRegionCalib:saveStateCalib;
+  const af=isR?(c)=>applyRegionProjection(c):(c)=>applyStateProjection(c);
+  document.getElementById('stateCalibName').textContent=isR?abbrev+' (Region)':abbrev;
+  const calib=cm[abbrev]||{scale:1,offX:0,offY:0};
+  const ss=document.getElementById('sliderStateScale'),sx=document.getElementById('sliderStateOffX'),sy=document.getElementById('sliderStateOffY');
+  if(isR){ss.min='0.1';ss.max='5.0';sx.min='-800';sx.max='800';sy.min='-800';sy.max='800';}
+  else{ss.min='0.5';ss.max='3.0';sx.min='-200';sx.max='200';sy.min='-200';sy.max='200';}
+  ss.value=calib.scale;document.getElementById('valStateScale').textContent=calib.scale.toFixed(2)+'x';
+  ss.oninput=function(){calib.scale=parseFloat(this.value);cm[abbrev]=calib;document.getElementById('valStateScale').textContent=calib.scale.toFixed(2)+'x';af(calib);updateStateCalibOutput(abbrev);sf();};
+  sx.value=calib.offX;document.getElementById('valStateOffX').textContent=calib.offX+'px';
+  sx.oninput=function(){calib.offX=parseInt(this.value);cm[abbrev]=calib;document.getElementById('valStateOffX').textContent=calib.offX+'px';af(calib);updateStateCalibOutput(abbrev);sf();};
+  sy.value=calib.offY;document.getElementById('valStateOffY').textContent=calib.offY+'px';
+  sy.oninput=function(){calib.offY=parseInt(this.value);cm[abbrev]=calib;document.getElementById('valStateOffY').textContent=calib.offY+'px';af(calib);updateStateCalibOutput(abbrev);sf();};
+  updateStateCalibOutput(abbrev);
+}
+function updateStateCalibOutput(ab) {
+  const o=document.getElementById('stateCalibOutput');if(!o)return;
+  const ks=Object.keys(stateCalibMap).sort();let t='// Calibrated: '+ks.length+'/50 states\n';
+  if(ab&&stateCalibMap[ab]){const c=stateCalibMap[ab];t+='// '+ab+' scale:'+c.scale.toFixed(2)+' offX:'+c.offX+' offY:'+c.offY+'\n';}
+  t+='// Auto-saved \u2713';o.textContent=t;
+}
+function resetStateCalib() {
+  if(_regionViewActive&&_regionViewKey){regionCalibMap[_regionViewKey]=makeDefaultRegionCalib();saveRegionCalib();showRegionCalibPanels(_regionViewKey);applyRegionProjection(regionCalibMap[_regionViewKey]);}
+  else if(_stateViewAbbrev){stateCalibMap[_stateViewAbbrev]={scale:1,offX:0,offY:0};saveStateCalib();showStateCalibPanel(_stateViewAbbrev);applyStateProjection(stateCalibMap[_stateViewAbbrev]);}
+}
+function clearAllStateCalib() {
+  Object.keys(stateCalibMap).forEach(k=>delete stateCalibMap[k]);
+  try{localStorage.removeItem('stateCalibMap');}catch(e){}
+  if(_stateViewAbbrev){showStateCalibPanel(_stateViewAbbrev);applyStateProjection({scale:1,offX:0,offY:0});}
+}
+function copyAllStateCalib() {
+  const sk=Object.keys(stateCalibMap).sort();let t='const _defaultStateCalib = {\n';
+  sk.forEach((k,i)=>{const c=stateCalibMap[k];t+='  '+k+':{scale:'+c.scale.toFixed(2)+',offX:'+c.offX+',offY:'+c.offY+'}'+(i<sk.length-1?',':'')+'\n';});
+  t+='};\n';
+  const rk=Object.keys(regionCalibMap).sort();
+  if(rk.length){t+='\n';rk.forEach(k=>{const rp=regionCalibMap[k];t+='regionCalibMap["'+k+'"]={lat_0:'+rp.lat_0+',lon_0:'+rp.lon_0+',lat_1:'+rp.lat_1+',lat_2:'+rp.lat_2+',rotation:'+rp.rotation+',left:'+rp.left+',right:'+rp.right+',top:'+rp.top+',bottom:'+rp.bottom+',scale:'+rp.scale.toFixed(2)+',offX:'+rp.offX+',offY:'+rp.offY+'};\n';});}
+  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector('#stateCalibPanel button');const o=b.textContent;b.textContent='\u2713 Copied!';setTimeout(()=>b.textContent=o,2000);});
+}
+
+// ── Boot ────────────────────────────────────────────────────────
+(async function boot() {
+  await initGeoJSON();
+  await loadRadar('USA', false);
+})();
+</script>
+</body>
+</html>
