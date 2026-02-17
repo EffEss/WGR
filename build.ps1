@@ -56,7 +56,7 @@ $srcFiles = @("$root\main.cpp")
 if ($resFile) { $srcFiles += $resFile }
 cl /nologo /O1 /GS- /GL /std:c++17 /EHsc `
    /I"$wv2Inc" `
-   /Fe"$out\WRG.exe" `
+   /Fe"$out\Drizzle.exe" `
    @srcFiles `
    /link /LTCG /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS `
    /MANIFEST:EMBED "/MANIFESTINPUT:$root\app.manifest" `
@@ -69,18 +69,18 @@ Remove-Item "$out\*.obj" -Force -EA SilentlyContinue
 Remove-Item "$out\res.res" -Force -EA SilentlyContinue
 
 # ── Step 4: Report ───────────────────────────────────────────────
-$exe = Get-Item "$out\WRG.exe"
+$exe = Get-Item "$out\Drizzle.exe"
 
 Write-Host ""
-Write-Host "  WRG.exe : $([math]::Round($exe.Length/1KB, 1)) KB" -ForegroundColor Green
+Write-Host "  Drizzle.exe : $([math]::Round($exe.Length/1KB, 1)) KB" -ForegroundColor Green
 Write-Host ""
 
 # ── Step 5: Create distributable zip ─────────────────────────────
-$zip = "$root\WRG.zip"
+$zip = "$root\Drizzle.zip"
 Remove-Item $zip -Force -EA SilentlyContinue
-Compress-Archive -Path "$out\WRG.exe" -DestinationPath $zip
+Compress-Archive -Path "$out\Drizzle.exe" -DestinationPath $zip
 $zipSize = (Get-Item $zip).Length
-Write-Host "  WRG.zip : $([math]::Round($zipSize/1KB, 1)) KB" -ForegroundColor Green
+Write-Host "  Drizzle.zip : $([math]::Round($zipSize/1KB, 1)) KB" -ForegroundColor Green
 
 if ($exe.Length -lt 1MB) {
     Write-Host "  ✓ UNDER 1 MB!" -ForegroundColor Green

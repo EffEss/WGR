@@ -1,4 +1,4 @@
-# WGR — Weather Radar Glance
+# Drizzle
 
 The worst, smallest weather application ever made.
 
@@ -12,7 +12,7 @@ A single ~400 KB `.exe` that shows live NEXRAD radar for the entire United State
 
 ## What It Does
 
-WGR displays animated radar GIF mosaics from AccuWeather's public NEXRAD compositing service, overlaid with interactive U.S. state boundaries projected via Lambert Conformal Conic (LCC) math — all inside a borderless WebView2 window.
+Drizzle displays animated radar GIF mosaics
 
 - **Click any state** → loads that state's dedicated radar GIF
 - **Click a region button** → loads a multi-state regional composite
@@ -23,7 +23,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. WGR does the same thing in under 500 KB by embedding everything — HTML, GeoJSON, projection math — directly into a native Win32 executable and hosting it in the OS-provided WebView2 runtime (already installed on all modern Windows machines).
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 500 KB
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -68,14 +68,14 @@ cmake -B out/build/x64-Release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build out/build/x64-Release
 ```
 
-The output is a single `WRG.exe`.
+The output is a single `Drizzle.exe`.
 
 ---
 
 ## Project Structure
 
 ```
-WGR/
+Drizzle/
 ├── main.cpp              # Win32 host, WebView2 init, download threads
 ├── WeatherGlance.rc      # Resource script (icon, embedded HTML/JSON)
 ├── Assets/

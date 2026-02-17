@@ -16,6 +16,7 @@ add_executable(WRG WIN32
   main.cpp
   WeatherGlance.rc
 )
+set_target_properties(WRG PROPERTIES OUTPUT_NAME "Drizzle")
 
 # Embed our app manifest via CMake's native manifest support
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")

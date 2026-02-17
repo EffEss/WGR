@@ -68,9 +68,20 @@ static void DownloadRadarGif(std::wstring url, std::wstring region) {
     PostMessage(g_hwnd, WM_RADAR_DONE, 0, (LPARAM)r);
 }
 
+static void CleanRadarCache() {
+    auto dir = GetRadarDir();
+    WIN32_FIND_DATAW fd;
+    auto pat = dir + L"\\*.gif";
+    HANDLE h = FindFirstFileW(pat.c_str(), &fd);
+    if (h != INVALID_HANDLE_VALUE) {
+        do { DeleteFileW((dir + L"\\" + fd.cFileName).c_str()); } while (FindNextFileW(h, &fd));
+        FindClose(h);
+    }
+}
+
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg == WM_SIZE) { ResizeWebView(); return 0; }
-    if (msg == WM_DESTROY) { PostQuitMessage(0); return 0; }
+    if (msg == WM_DESTROY) { CleanRadarCache(); PostQuitMessage(0); return 0; }
     if (msg == WM_RADAR_DONE) {
         auto* r = (DlResult*)lp;
         if (g_webview) {
@@ -188,15 +199,21 @@ static void InitWebView() {
                                         std::thread(DownloadRadarGif, url, region).detach();
                                     }
                                 } else if (p1 != std::wstring::npos && m.substr(0, p1) == L"CLEARCACHE") {
+                                    CleanRadarCache();
+                                    if (g_webview) g_webview->PostWebMessageAsJson(L"{\"type\":\"cacheCleared\"}");
+                                } else if (p1 != std::wstring::npos && m.substr(0, p1) == L"CACHESIZE") {
                                     auto dir = GetRadarDir();
                                     WIN32_FIND_DATAW fd;
                                     auto pat = dir + L"\\*.gif";
                                     HANDLE h = FindFirstFileW(pat.c_str(), &fd);
+                                    ULONGLONG total = 0; int count = 0;
                                     if (h != INVALID_HANDLE_VALUE) {
-                                        do { DeleteFileW((dir + L"\\" + fd.cFileName).c_str()); } while (FindNextFileW(h, &fd));
+                                        do { total += ((ULONGLONG)fd.nFileSizeHigh << 32) | fd.nFileSizeLow; count++; } while (FindNextFileW(h, &fd));
                                         FindClose(h);
                                     }
-                                    if (g_webview) g_webview->PostWebMessageAsJson(L"{\"type\":\"cacheCleared\"}");
+                                    wchar_t json[128];
+                                    swprintf_s(json, L"{\"type\":\"cacheSize\",\"bytes\":%llu,\"count\":%d}", total, count);
+                                    if (g_webview) g_webview->PostWebMessageAsJson(json);
                                 }
                             }
                             return S_OK;
@@ -234,8 +251,8 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, LPWSTR, int nShow) {
     wc.hbrBackground = CreateSolidBrush(RGB(13, 17, 23));
     wc.hIcon = LoadIconW(hInst, MAKEINTRESOURCEW(101));
     RegisterClassW(&wc);
-    g_hwnd = CreateWindowExW(0, L"WeatherGlanceLite", L"Weather Radar Glance",
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 700, 580,
+    g_hwnd = CreateWindowExW(0, L"WeatherGlanceLite", L"Drizzle",
+        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 700, 620,
         nullptr, nullptr, hInst, nullptr);
     ShowWindow(g_hwnd, nShow);
     UpdateWindow(g_hwnd);
