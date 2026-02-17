@@ -1,2 +1,4 @@
-// Resource script — embeds the icon
+// Resource script — embeds the icon and web assets
 101 ICON "radar.ico"
+200 RCDATA "Assets\\radar-map.html"
+201 RCDATA "Assets\\us-states.geo.json"

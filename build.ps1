@@ -56,7 +56,7 @@ $srcFiles = @("$root\main.cpp")
 if ($resFile) { $srcFiles += $resFile }
 cl /nologo /O1 /GS- /GL /std:c++17 /EHsc `
    /I"$wv2Inc" `
-   /Fe"$out\WeatherGlance.exe" `
+   /Fe"$out\WRG.exe" `
    @srcFiles `
    /link /LTCG /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS `
    /MANIFEST:EMBED "/MANIFESTINPUT:$root\app.manifest" `
@@ -64,39 +64,26 @@ cl /nologo /O1 /GS- /GL /std:c++17 /EHsc `
 
 if ($LASTEXITCODE -ne 0) { Write-Error "Compilation failed"; exit 1 }
 
-# ── Step 4: Copy assets ──────────────────────────────────────────
-$assetsOut = "$out\Assets"
-$null = New-Item $assetsOut -ItemType Directory -Force
-Copy-Item "$root\Assets\radar-map.html" $assetsOut -Force
-Copy-Item "$root\Assets\us-states.geo.json" $assetsOut -Force
-
 # Clean intermediate files
 Remove-Item "$out\*.obj" -Force -EA SilentlyContinue
 Remove-Item "$out\res.res" -Force -EA SilentlyContinue
 
-# ── Step 5: Report ───────────────────────────────────────────────
-$exe = Get-Item "$out\WeatherGlance.exe"
-$html = Get-Item "$assetsOut\radar-map.html"
-$geo = Get-Item "$assetsOut\us-states.geo.json"
-$total = $exe.Length + $html.Length + $geo.Length
+# ── Step 4: Report ───────────────────────────────────────────────
+$exe = Get-Item "$out\WRG.exe"
 
 Write-Host ""
-Write-Host "  WeatherGlance.exe : $([math]::Round($exe.Length/1KB, 1)) KB" -ForegroundColor Green
-Write-Host "  radar-map.html    : $([math]::Round($html.Length/1KB, 1)) KB" -ForegroundColor Green
-Write-Host "  us-states.geo.json: $([math]::Round($geo.Length/1KB, 1)) KB" -ForegroundColor Green
-Write-Host "  ────────────────────"
-Write-Host "  TOTAL             : $([math]::Round($total/1KB, 1)) KB" -ForegroundColor Cyan
+Write-Host "  WRG.exe : $([math]::Round($exe.Length/1KB, 1)) KB" -ForegroundColor Green
 Write-Host ""
 
-if ($total -lt 1MB) {
+# ── Step 5: Create distributable zip ─────────────────────────────
+$zip = "$root\WRG.zip"
+Remove-Item $zip -Force -EA SilentlyContinue
+Compress-Archive -Path "$out\WRG.exe" -DestinationPath $zip
+$zipSize = (Get-Item $zip).Length
+Write-Host "  WRG.zip : $([math]::Round($zipSize/1KB, 1)) KB" -ForegroundColor Green
+
+if ($exe.Length -lt 1MB) {
     Write-Host "  ✓ UNDER 1 MB!" -ForegroundColor Green
 } else {
     Write-Host "  ✗ Over 1 MB — need further optimization" -ForegroundColor Red
 }
-
-# Create zip
-$zipName = "WeatherRadarGlance-Lite-$Arch.zip"
-Remove-Item "$root\$zipName" -Force -EA SilentlyContinue
-Compress-Archive -Path "$out\*" -DestinationPath "$root\$zipName"
-$zip = Get-Item "$root\$zipName"
-Write-Host "  Zip: $zipName ($([math]::Round($zip.Length/1KB, 1)) KB)" -ForegroundColor Cyan

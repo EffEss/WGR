@@ -6,16 +6,28 @@
 #include <string>
 #include <thread>
 #include <urlmon.h>
+#include <shlwapi.h>
 #include "WebView2.h"
 #pragma comment(lib, "urlmon.lib")
 using namespace Microsoft::WRL;
 
+#define IDR_RADAR_HTML  200
+#define IDR_STATES_JSON 201
 #define WM_RADAR_DONE (WM_USER + 1)
 struct DlResult { std::wstring region; std::wstring file; std::wstring error; };
 
 static HWND g_hwnd = nullptr;
 static ComPtr<ICoreWebView2Controller> g_ctrl;
 static ComPtr<ICoreWebView2> g_webview;
+static ComPtr<ICoreWebView2Environment> g_env;
+
+static IStream* LoadEmbeddedResource(int id) {
+    HRSRC hRes = FindResourceW(nullptr, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
+    if (!hRes) return nullptr;
+    HGLOBAL hData = LoadResource(nullptr, hRes);
+    if (!hData) return nullptr;
+    return SHCreateMemStream((const BYTE*)LockResource(hData), SizeofResource(nullptr, hRes));
+}
 
 static std::wstring GetExeDir() {
     wchar_t buf[MAX_PATH]; GetModuleFileNameW(nullptr, buf, MAX_PATH);
@@ -78,52 +90,85 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     return DefWindowProcW(hwnd, msg, wp, lp);
 }
 
-class WV2EnvOptions
-    : public RuntimeClass<RuntimeClassFlags<ClassicCom>, ICoreWebView2EnvironmentOptions>
-{
-    std::wstring m_args;
-public:
-    HRESULT STDMETHODCALLTYPE get_AdditionalBrowserArguments(LPWSTR* v) override
-        { *v = SysAllocString(m_args.c_str()); return S_OK; }
-    HRESULT STDMETHODCALLTYPE put_AdditionalBrowserArguments(LPCWSTR v) override
-        { m_args = v ? v : L""; return S_OK; }
-    HRESULT STDMETHODCALLTYPE get_Language(LPWSTR* v) override
-        { *v = nullptr; return S_OK; }
-    HRESULT STDMETHODCALLTYPE put_Language(LPCWSTR) override { return S_OK; }
-    HRESULT STDMETHODCALLTYPE get_TargetCompatibleBrowserVersion(LPWSTR* v) override
-        { *v = nullptr; return S_OK; }
-    HRESULT STDMETHODCALLTYPE put_TargetCompatibleBrowserVersion(LPCWSTR) override { return S_OK; }
-    HRESULT STDMETHODCALLTYPE get_AllowSingleSignOnUsingOSPrimaryAccount(BOOL* v) override
-        { *v = FALSE; return S_OK; }
-    HRESULT STDMETHODCALLTYPE put_AllowSingleSignOnUsingOSPrimaryAccount(BOOL) override { return S_OK; }
-};
-
 static void InitWebView() {
     auto udd = GetCacheDir();
-    auto exeDir = GetExeDir();
+    // Reduce cache bloat by disabling unused Chromium/Edge features
+    SetEnvironmentVariableW(L"WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        L"--disable-features="
+            L"msSmartScreenProtection,"
+            L"msEdgeJourneys,"
+            L"msParcelTracking,"
+            L"msEdgeShoppingUI,"
+            L"msEdgeDevToolsWelcomeExperience,"
+            L"msPersistentOriginTrials,"
+            L"OptimizationHints,"
+            L"EdgeDiscoverEnabled,"
+            L"InterestFeedContentSuggestions,"
+            L"BrowsingTopics,"
+            L"SharedDictionaries "
+        L"--no-first-run "
+        L"--disable-component-update "
+        L"--disable-crash-reporter "
+        L"--disable-client-side-phishing-detection "
+        L"--disable-sync "
+        L"--disable-domain-reliability "
+        L"--disable-gpu-shader-disk-cache "
+        L"--disable-gpu "
+        L"--disk-cache-size=1048576");
     CreateCoreWebView2EnvironmentWithOptions(nullptr, udd.c_str(), nullptr,
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [exeDir](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
+            [](HRESULT hr, ICoreWebView2Environment* env) -> HRESULT {
             if (FAILED(hr)) return hr;
+            g_env = env;
             env->CreateCoreWebView2Controller(g_hwnd,
                 Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                    [exeDir](HRESULT hr, ICoreWebView2Controller* ctrl) -> HRESULT {
+                    [](HRESULT hr, ICoreWebView2Controller* ctrl) -> HRESULT {
                     if (FAILED(hr)) return hr;
                     g_ctrl = ctrl;
                     g_ctrl->get_CoreWebView2(&g_webview);
                     ResizeWebView();
+                    // Serve radar GIF cache from disk
                     ComPtr<ICoreWebView2_3> wv3;
                     g_webview.As(&wv3);
                     if (wv3) {
-                        auto ad = exeDir + L"Assets";
-                        wv3->SetVirtualHostNameToFolderMapping(
-                            L"app.local", ad.c_str(),
-                            COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW);
                         auto rd = GetRadarDir();
                         wv3->SetVirtualHostNameToFolderMapping(
                             L"radar-cache.local", rd.c_str(),
                             COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW);
                     }
+                    // Serve embedded assets via WebResourceRequested
+                    g_webview->AddWebResourceRequestedFilter(
+                        L"https://app.local/*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+                    g_webview->add_WebResourceRequested(
+                        Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                            [](ICoreWebView2*, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+                            ComPtr<ICoreWebView2WebResourceRequest> req;
+                            args->get_Request(&req);
+                            LPWSTR uri = nullptr;
+                            req->get_Uri(&uri);
+                            if (!uri) return S_OK;
+                            std::wstring url(uri);
+                            CoTaskMemFree(uri);
+                            int resId = 0;
+                            const wchar_t* ct = nullptr;
+                            if (url.find(L"radar-map.html") != std::wstring::npos) {
+                                resId = IDR_RADAR_HTML; ct = L"text/html; charset=utf-8";
+                            } else if (url.find(L"us-states.geo.json") != std::wstring::npos) {
+                                resId = IDR_STATES_JSON; ct = L"application/json";
+                            }
+                            if (resId) {
+                                IStream* stream = LoadEmbeddedResource(resId);
+                                if (stream) {
+                                    ComPtr<ICoreWebView2WebResourceResponse> resp;
+                                    wchar_t hdr[128];
+                                    swprintf_s(hdr, L"Content-Type: %s\r\nAccess-Control-Allow-Origin: *", ct);
+                                    g_env->CreateWebResourceResponse(stream, 200, L"OK", hdr, &resp);
+                                    args->put_Response(resp.Get());
+                                    stream->Release();
+                                }
+                            }
+                            return S_OK;
+                        }).Get(), nullptr);
                     // Listen for download requests from JS
                     g_webview->add_WebMessageReceived(
                         Callback<ICoreWebView2WebMessageReceivedEventHandler>(
@@ -161,6 +206,11 @@ static void InitWebView() {
                     s->put_IsStatusBarEnabled(FALSE);
                     s->put_AreDefaultContextMenusEnabled(FALSE);
                     s->put_AreDevToolsEnabled(TRUE);
+                    ComPtr<ICoreWebView2Settings4> s4;
+                    if (SUCCEEDED(s.As(&s4))) {
+                        s4->put_IsPasswordAutosaveEnabled(FALSE);
+                        s4->put_IsGeneralAutofillEnabled(FALSE);
+                    }
                     ComPtr<ICoreWebView2Controller2> c2;
                     g_ctrl.As(&c2);
                     if (c2) {
