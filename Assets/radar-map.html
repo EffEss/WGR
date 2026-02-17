@@ -50,15 +50,13 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 .rb.active { background: rgba(0,120,212,0.7); color: #fff; }
 #statusArea { margin-left: auto; display: flex; gap: 10px; font-size: 11px; color: #888; }
 
-/* ── Loading spinner ──────────────────────────────────────────── */
-#spinner {
+/* ── Loading indicator ────────────────────────────────────────── */
+#loadingText {
   display: none; position: fixed; top: 50%; left: 50%;
   transform: translate(-50%,-50%); z-index: 9001;
-  width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
-  border-top-color: #0078d4; border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  font: 600 16px "Segoe UI Variable", "Segoe UI", sans-serif;
+  color: rgba(255,255,255,0.6); letter-spacing: 1px;
 }
-@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
 
 /* ── State tooltip ──────────────────────────────────────────── */
 .state-tooltip {
@@ -67,29 +65,6 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   padding: 4px 10px; font: 600 13px "Segoe UI", sans-serif;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-
-/* ── Calibration panels ──────────────────────────────────────── */
-#calibPanel, #stateCalibPanel {
-  display: none; position: fixed; bottom: 60px; z-index: 10001;
-  background: rgba(20,20,30,0.95); border: 1px solid rgba(0,255,136,0.4);
-  border-radius: 10px; padding: 12px 18px; color: #e0e0e0;
-  font: 12px "Cascadia Code","Consolas",monospace;
-  min-width: 420px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-}
-#calibPanel { left: 10px; }
-#stateCalibPanel { right: 10px; }
-.cp h3 { margin: 0 0 8px; color: #00ff88; font-size: 14px; }
-.cp .row { display: flex; gap: 14px; margin: 4px 0; align-items: center; }
-.cp label { color: #aaa; width: 40px; text-align: right; }
-.cp input[type=range] { flex: 1; accent-color: #00ff88; }
-.cp .val { color: #00ff88; width: 80px; text-align: left; }
-.cp button { margin-top: 8px; padding: 6px 16px; background: #00ff88; color: #111;
-  border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-.cp button:hover { background: #33ffaa; }
-.cp .out { margin-top: 8px; padding: 8px; background: #111; border-radius: 6px;
-  white-space: pre; font-size: 11px; color: #00ff88; user-select: all;
-  max-height: 140px; overflow-y: auto; }
-.cp .sep { margin: 6px 0 4px; color: #888; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -116,47 +91,11 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   </div>
 </div>
 
-<!-- ── Loading spinner ───────────────────────────────────────── -->
-<div id="spinner"></div>
+<!-- ── Loading indicator ─────────────────────────────────────── -->
+<div id="loadingText">Loading</div>
 
 <!-- ── Map ────────────────────────────────────────────────────── -->
 <div id="map"></div>
-
-<!-- ── Calibration panel (LCC projection) ────────────────────── -->
-<div id="calibPanel" class="cp">
-  <h3>🎯 Projection Calibration</h3>
-  <div class="sep">─── Projection Curvature ───</div>
-  <div class="row"><label>lat₀</label><input type="range" id="sliderLat0" min="20" max="70" step="0.1"/><span class="val" id="valLat0"></span></div>
-  <div class="row"><label>lat₁</label><input type="range" id="sliderLat1" min="15" max="89" step="0.1"/><span class="val" id="valLat1"></span></div>
-  <div class="row"><label>lat₂</label><input type="range" id="sliderLat2" min="35" max="89" step="0.1"/><span class="val" id="valLat2"></span></div>
-  <div class="row"><label>lon₀</label><input type="range" id="sliderLon0" min="-110" max="-85" step="0.1"/><span class="val" id="valLon0"></span></div>
-  <div class="sep">─── Rotation (degrees) ───</div>
-  <div class="row"><label>rot</label><input type="range" id="sliderRot" min="-10" max="10" step="0.05"/><span class="val" id="valRot"></span></div>
-  <div class="sep">─── Bounding Box (meters) ───</div>
-  <div class="row"><label>Left</label><input type="range" id="sliderLeft" min="-5000000" max="-1500000" step="5000"/><span class="val" id="valLeft"></span></div>
-  <div class="row"><label>Right</label><input type="range" id="sliderRight" min="1500000" max="5000000" step="5000"/><span class="val" id="valRight"></span></div>
-  <div class="row"><label>Top</label><input type="range" id="sliderTop" min="1500000" max="4000000" step="5000"/><span class="val" id="valTop"></span></div>
-  <div class="row"><label>Bot</label><input type="range" id="sliderBottom" min="-4000000" max="-1000000" step="5000"/><span class="val" id="valBottom"></span></div>
-  <div style="margin-top:6px;display:flex;gap:8px;">
-    <button onclick="copyCalibOutput()">📋 Copy Config</button>
-    <button onclick="resetCalib()" style="background:#ff6666;color:#fff;">↩ Reset</button>
-  </div>
-  <div class="out" id="calibOutput"></div>
-</div>
-
-<!-- ── State-level calibration panel ─────────────────────────── -->
-<div id="stateCalibPanel" class="cp">
-  <h3>🎯 State View Calibration — <span id="stateCalibName">??</span></h3>
-  <div class="row"><label>scale</label><input type="range" id="sliderStateScale" min="0.5" max="3.0" step="0.01"/><span class="val" id="valStateScale"></span></div>
-  <div class="row"><label>offX</label><input type="range" id="sliderStateOffX" min="-200" max="200" step="1"/><span class="val" id="valStateOffX"></span></div>
-  <div class="row"><label>offY</label><input type="range" id="sliderStateOffY" min="-200" max="200" step="1"/><span class="val" id="valStateOffY"></span></div>
-  <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
-    <button onclick="copyAllStateCalib()">📋 Copy All States</button>
-    <button onclick="resetStateCalib()" style="background:#ff6666;color:#fff;">↩ Reset This</button>
-    <button onclick="clearAllStateCalib()" style="background:#ff4444;color:#fff;">🗑 Clear All</button>
-  </div>
-  <div class="out" id="stateCalibOutput"></div>
-</div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════
@@ -260,6 +199,20 @@ let _selectedRegionBtn = null;
 
 function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
 
+let _loadingTimer = null;
+function showLoading() {
+  const el = document.getElementById('loadingText');
+  let dots = 0;
+  el.textContent = 'Loading';
+  el.style.display = 'block';
+  _loadingTimer = setInterval(() => { dots = (dots + 1) % 4; el.textContent = 'Loading' + '.'.repeat(dots); }, 400);
+}
+function hideLoading() {
+  const el = document.getElementById('loadingText');
+  el.style.display = 'none';
+  if (_loadingTimer) { clearInterval(_loadingTimer); _loadingTimer = null; }
+}
+
 function fmtTime(d) {
   if (!d) return '';
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -314,7 +267,13 @@ const map = L.map('map', {
 });
 map.fitBounds(gifBounds);
 
-// ── LCC projection ─────────────────────────────────────────────
+// Re-fit GIF to window on resize
+window.addEventListener('resize', function() {
+  map.invalidateSize();
+  map.fitBounds(gifBounds, { animate: false });
+});
+
+// ── LCC projection
 const LCC_PARAMS = { lat_0: 37.8, lon_0: -97.4, lat_1: 89.0, lat_2: 89.0 };
 function buildLCC() {
   return '+proj=lcc +lat_0=' + LCC_PARAMS.lat_0 + ' +lon_0=' + LCC_PARAMS.lon_0
@@ -376,15 +335,19 @@ function makeDefaultRegionCalib() {
   return { lat_0:37.8,lon_0:-97.4,lat_1:89.0,lat_2:89.0,rotation:0.7,
     left:-3780000,right:3750000,top:3135000,bottom:-2585000,scale:1.0,offX:0,offY:0 };
 }
-const _defaultRegionCalib = {};
-['NORTHEAST','NORTHWEST','NORTHCENTRAL','SOUTHEAST','SOUTHWEST','SOUTHCENTRAL'].forEach(k =>
-  _defaultRegionCalib[k] = makeDefaultRegionCalib());
+const _defaultRegionCalib = {
+  NORTHCENTRAL: { lat_0:34.8, lon_0:-97.4, lat_1:85.5, lat_2:35, rotation:-0.6, left:-3290000, right:3360000, top:2965000, bottom:-2205000, scale:2.26, offX:6, offY:-156 },
+  NORTHEAST:    { lat_0:38.4, lon_0:-98.9, lat_1:89, lat_2:42.2, rotation:0.3, left:-4125000, right:3265000, top:3170000, bottom:-2700000, scale:2.34, offX:-381, offY:-125 },
+  NORTHWEST:    { lat_0:36.8, lon_0:-106.5, lat_1:59.5, lat_2:89, rotation:-8.75, left:-4890000, right:2360000, top:3590000, bottom:-2370000, scale:2.34, offX:-94, offY:-156 },
+  SOUTHCENTRAL: { lat_0:37.8, lon_0:-97.4, lat_1:89, lat_2:44.7, rotation:-0.15, left:-3780000, right:3700000, top:3210000, bottom:-2605000, scale:2.65, offX:-12, offY:194 },
+  SOUTHEAST:    { lat_0:37.8, lon_0:-97.4, lat_1:56, lat_2:89, rotation:0.7, left:-3430000, right:3415000, top:2925000, bottom:-2370000, scale:2.28, offX:-231, offY:188 },
+  SOUTHWEST:    { lat_0:36.6, lon_0:-87, lat_1:15, lat_2:82.3, rotation:7.25, left:-3755000, right:3620000, top:4000000, bottom:-2310000, scale:3.28, offX:538, offY:175 }
+};
 const regionCalibMap = {};
 for (const k of Object.keys(_defaultRegionCalib)) regionCalibMap[k] = Object.assign({}, _defaultRegionCalib[k]);
 try { const s = JSON.parse(localStorage.getItem('regionCalibMap'));
   if (s) for (const k of Object.keys(s)) regionCalibMap[k] = Object.assign(makeDefaultRegionCalib(), s[k]);
 } catch(e) {}
-function saveRegionCalib() { try { localStorage.setItem('regionCalibMap', JSON.stringify(regionCalibMap)); } catch(e) {} }
 
 function geoToPixelRegion(lng, lat, rp) {
   const lcc = '+proj=lcc +lat_0='+rp.lat_0+' +lon_0='+rp.lon_0+' +lat_1='+rp.lat_1+' +lat_2='+rp.lat_2+' +a=6371200 +b=6371200 +units=m +no_defs';
@@ -425,7 +388,6 @@ const stateCalibMap = Object.assign({}, _defaultStateCalib);
 try { const s = JSON.parse(localStorage.getItem('stateCalibMap'));
   if (s) Object.assign(stateCalibMap, s);
 } catch(e) {}
-function saveStateCalib() { try { localStorage.setItem('stateCalibMap', JSON.stringify(stateCalibMap)); } catch(e) {} }
 
 // ── Radar display functions ─────────────────────────────────────
 function setNationalRadar(url) {
@@ -436,8 +398,6 @@ function setNationalRadar(url) {
   if (_stateViewActive || _regionViewActive) {
     _stateViewActive = false; _stateViewAbbrev = '';
     _regionViewActive = false; _regionViewKey = '';
-    document.getElementById('stateCalibPanel').style.display = 'none';
-    if (calibActive) { document.getElementById('calibPanel').style.display = 'block'; initCalibSliders(); updateCalibOutput(); }
     rebuildPolygons(geoToPixel);
   }
   if (statesLayer) statesLayer.bringToFront();
@@ -452,7 +412,6 @@ function setRegionRadar(url, regionKey) {
   _regionViewActive = true; _regionViewKey = regionKey || '';
   if (!regionCalibMap[regionKey]) regionCalibMap[regionKey] = makeDefaultRegionCalib();
   applyRegionProjection(regionCalibMap[regionKey]);
-  if (calibActive) showRegionCalibPanels(regionKey);
   map.flyToBounds(gifBounds, { duration: 0.5 });
 }
 
@@ -481,7 +440,6 @@ function setStateRadar(url, abbrev) {
   _stateViewBaseScale = IMG_H / (geoW/geoH > 4/3 ? geoW*3/4 : geoH);
   const calib = stateCalibMap[abbrev] || { scale:1, offX:0, offY:0 };
   applyStateProjection(calib);
-  if (calibActive) showStateCalibPanel(abbrev);
   map.flyToBounds(gifBounds, { duration: 0.5 });
 }
 
@@ -508,10 +466,8 @@ function clearStateOverlay() {
 function flyToUSA() { clearStateOverlay(); map.flyToBounds(gifBounds, {duration:0.5}); }
 
 // ── GeoJSON layer ───────────────────────────────────────────────
-let statesLayer = null, selectedLayer = null;
+let statesLayer = null;
 const defaultStyle = { color:'transparent', weight:0, fillColor:'transparent', fillOpacity:0 };
-const calibHoverStyle = { color:'rgba(0,120,212,0.7)', weight:2, fillColor:'rgba(0,120,212,0.1)', fillOpacity:1 };
-const calibSelectedStyle = { color:'rgba(0,120,212,1)', weight:2.5, fillColor:'rgba(0,120,212,0.15)', fillOpacity:1 };
 
 function bindFeatureInteraction(feature, layer) {
   const abbrev = feature.properties.STUSPS || '';
@@ -528,10 +484,7 @@ function bindFeatureInteraction(feature, layer) {
         : name+(abbrev?' ('+abbrev+')':''));
     if (tip) layer.bindTooltip(tip, { className:'state-tooltip', sticky:true, direction:'top', offset:[0,-10] });
   }
-  layer.on('mouseover', ()=>{ if(calibActive && layer!==selectedLayer) layer.setStyle(calibHoverStyle); });
-  layer.on('mouseout', ()=>{ if(calibActive && layer!==selectedLayer) layer.setStyle(defaultStyle); });
   layer.on('click', function(e) {
-    if (calibActive) { if(selectedLayer) selectedLayer.setStyle(defaultStyle); selectedLayer=layer; layer.setStyle(calibSelectedStyle); }
     let clickAbbrev = abbrev, clickName = name;
     if (subFn) { const r=getRelPos(layer,e.latlng); const sub=subFn(r.x,r.y); clickAbbrev=sub.key; clickName=sub.name; }
     handleStateClick(clickAbbrev, clickName);
@@ -553,7 +506,7 @@ function handleStateClick(abbrev, name) {
   }
 }
 
-function clearSelection() { if(selectedLayer){selectedLayer.setStyle(defaultStyle);selectedLayer=null;} }
+function clearSelection() { }
 function clearMapSelection() { clearSelection(); }
 
 // ── Polygon rebuild ─────────────────────────────────────────────
@@ -562,7 +515,6 @@ let _origGeoJSON = null;
 function rebuildPolygons(projFn) {
   if (!_origGeoJSON) return;
   if (statesLayer) map.removeLayer(statesLayer);
-  selectedLayer = null;
   const clone = JSON.parse(_origGeoJSON);
   for (const f of clone.features) {
     let minLat=90,maxLat=-90,minLng=180,maxLng=-180;
@@ -573,7 +525,7 @@ function rebuildPolygons(projFn) {
   }
   statesLayer = L.geoJSON(clone, {
     coordsToLatLng: c => L.latLng(c[1], c[0]),
-    style: calibActive ? { color:'rgba(0,255,136,0.6)',weight:1.5,fillColor:'transparent',fillOpacity:0 } : defaultStyle,
+    style: defaultStyle,
     onEachFeature: bindFeatureInteraction
   }).addTo(map);
 }
@@ -583,11 +535,11 @@ async function loadRadar(key, force, displayName) {
   _currentKey = key;
   displayName = displayName || key;
   document.getElementById('regionTitle').textContent = key === 'USA' ? 'USA National Radar' : displayName + ' — Radar';
-  document.getElementById('spinner').style.display = 'block';
+  showLoading();
   setStatus('Loading ' + displayName + '...');
 
   const result = await fetchRadarGif(key, force);
-  document.getElementById('spinner').style.display = 'none';
+  hideLoading();
 
   if (result.url) {
     if (key === 'USA') { setNationalRadar(result.url); flyToUSA(); }
@@ -604,11 +556,11 @@ async function loadRadar(key, force, displayName) {
 async function loadStateRadar(abbrev, name) {
   _currentKey = abbrev;
   document.getElementById('regionTitle').textContent = (name||abbrev) + ' (' + abbrev + ') — Radar';
-  document.getElementById('spinner').style.display = 'block';
+  showLoading();
   setStatus('Loading ' + (name||abbrev) + '...');
 
   const result = await fetchRadarGif(abbrev, false);
-  document.getElementById('spinner').style.display = 'none';
+  hideLoading();
 
   if (result.url) {
     const isFallback = result.error && result.error.startsWith('Showing');
@@ -644,141 +596,9 @@ async function initGeoJSON() {
   } catch(e) { setStatus('GeoJSON error: ' + e.message); }
 }
 
-// ── Calibration (godmode easter egg) ────────────────────────────
-let calibActive = false;
-let _konamiBuffer = '';
-const GODMODE = 'godmode';
-
-document.addEventListener('keydown', function(e) {
-  if (e.key.length !== 1) return;
-  _konamiBuffer += e.key.toLowerCase();
-  if (_konamiBuffer.length > GODMODE.length) _konamiBuffer = _konamiBuffer.slice(-GODMODE.length);
-  if (_konamiBuffer === GODMODE) { _konamiBuffer = ''; toggleCalibration(); }
-});
-
-function toggleCalibration() {
-  calibActive = !calibActive;
-  if (calibActive) {
-    if (_stateViewActive) { document.getElementById('calibPanel').style.display='none'; showStateCalibPanel(_stateViewAbbrev); }
-    else if (_regionViewActive) { showRegionCalibPanels(_regionViewKey); }
-    else { document.getElementById('stateCalibPanel').style.display='none'; document.getElementById('calibPanel').style.display='block'; initCalibSliders(); updateCalibOutput(); }
-  } else {
-    document.getElementById('calibPanel').style.display='none';
-    document.getElementById('stateCalibPanel').style.display='none';
-  }
-  if (_stateViewActive) applyStateProjection(stateCalibMap[_stateViewAbbrev]||{scale:1,offX:0,offY:0});
-  else if (_regionViewActive) applyRegionProjection(regionCalibMap[_regionViewKey]);
-  else rebuildPolygons(geoToPixel);
-  setStatus(calibActive ? 'Calibration mode ON' : 'Ready');
-}
-
-function showRegionCalibPanels(regionKey) {
-  const rp = regionCalibMap[regionKey]; if(!rp) return;
-  document.getElementById('calibPanel').style.display = 'block';
-  initRegionLCCSliders(regionKey);
-  showStateCalibPanel(regionKey);
-}
-
-function initRegionLCCSliders(regionKey) {
-  const rp = regionCalibMap[regionKey];
-  const apply = ()=>{ applyRegionProjection(rp); saveRegionCalib(); updateRegionCalibOutput(regionKey); };
-  [{id:'Lat0',key:'lat_0'},{id:'Lat1',key:'lat_1'},{id:'Lat2',key:'lat_2'},{id:'Lon0',key:'lon_0'}].forEach(s=>{
-    const el=document.getElementById('slider'+s.id); el.value=rp[s.key];
-    document.getElementById('val'+s.id).textContent=rp[s.key].toFixed(1)+'\u00b0';
-    el.oninput=function(){rp[s.key]=parseFloat(this.value);document.getElementById('val'+s.id).textContent=rp[s.key].toFixed(1)+'\u00b0';apply();};
-  });
-  const rot=document.getElementById('sliderRot');rot.value=rp.rotation;document.getElementById('valRot').textContent=rp.rotation.toFixed(2)+'\u00b0';
-  rot.oninput=function(){rp.rotation=parseFloat(this.value);document.getElementById('valRot').textContent=rp.rotation.toFixed(2)+'\u00b0';apply();};
-  ['Left','Right','Top','Bottom'].forEach((id,i)=>{
-    const key=['left','right','top','bottom'][i];const el=document.getElementById('slider'+id);el.value=rp[key];
-    document.getElementById('val'+id).textContent=rp[key].toLocaleString();
-    el.oninput=function(){rp[key]=parseInt(this.value);document.getElementById('val'+id).textContent=rp[key].toLocaleString();apply();};
-  });
-  updateRegionCalibOutput(regionKey);
-}
-function updateRegionCalibOutput(rk) {
-  const rp=regionCalibMap[rk],o=document.getElementById('calibOutput');if(!o)return;
-  o.textContent=rk+' LCC: lat_0='+rp.lat_0+' lon_0='+rp.lon_0+' lat_1='+rp.lat_1+' lat_2='+rp.lat_2
-    +'\nrotation: '+rp.rotation+'\nPROJ: L='+rp.left+' R='+rp.right+' T='+rp.top+' B='+rp.bottom
-    +'\nscale: '+rp.scale.toFixed(2)+' offX: '+rp.offX+' offY: '+rp.offY+'\nAuto-saved \u2713';
-}
-
-function initCalibSliders() {
-  [{id:'Lat0',key:'lat_0'},{id:'Lat1',key:'lat_1'},{id:'Lat2',key:'lat_2'},{id:'Lon0',key:'lon_0'}].forEach(s=>{
-    const el=document.getElementById('slider'+s.id);el.value=LCC_PARAMS[s.key];
-    document.getElementById('val'+s.id).textContent=LCC_PARAMS[s.key].toFixed(1)+'\u00b0';
-    el.oninput=function(){LCC_PARAMS[s.key]=parseFloat(this.value);document.getElementById('val'+s.id).textContent=LCC_PARAMS[s.key].toFixed(1)+'\u00b0';LCC=buildLCC();applyCalibration();};
-  });
-  const rot=document.getElementById('sliderRot');rot.value=ROTATION_DEG;document.getElementById('valRot').textContent=ROTATION_DEG.toFixed(2)+'\u00b0';
-  rot.oninput=function(){ROTATION_DEG=parseFloat(this.value);document.getElementById('valRot').textContent=ROTATION_DEG.toFixed(2)+'\u00b0';applyCalibration();};
-  ['Left','Right','Top','Bottom'].forEach((id,i)=>{
-    const key=['left','right','top','bottom'][i];const el=document.getElementById('slider'+id);el.value=PROJ[key];
-    document.getElementById('val'+id).textContent=PROJ[key].toLocaleString();
-    el.oninput=function(){PROJ[key]=parseInt(this.value);document.getElementById('val'+id).textContent=PROJ[key].toLocaleString();applyCalibration();};
-  });
-}
-function applyCalibration() { PROJ_W=PROJ.right-PROJ.left;PROJ_H=PROJ.top-PROJ.bottom;rebuildPolygons(geoToPixel);updateCalibOutput(); }
-function updateCalibOutput() {
-  const o=document.getElementById('calibOutput');if(!o)return;
-  o.textContent='LCC: lat_0='+LCC_PARAMS.lat_0+' lon_0='+LCC_PARAMS.lon_0+' lat_1='+LCC_PARAMS.lat_1+' lat_2='+LCC_PARAMS.lat_2
-    +'\nROTATION_DEG = '+ROTATION_DEG
-    +'\nPROJ: L='+PROJ.left+' R='+PROJ.right+' T='+PROJ.top+' B='+PROJ.bottom;
-}
-function resetCalib() {
-  LCC_PARAMS.lat_0=37.8;LCC_PARAMS.lat_1=89.0;LCC_PARAMS.lat_2=89.0;LCC_PARAMS.lon_0=-97.4;
-  ROTATION_DEG=0.7;LCC=buildLCC();PROJ.left=-3780000;PROJ.right=3750000;PROJ.top=3135000;PROJ.bottom=-2585000;
-  initCalibSliders();applyCalibration();
-}
-function copyCalibOutput() {
-  navigator.clipboard.writeText(document.getElementById('calibOutput').textContent).then(()=>{
-    const b=document.querySelector('#calibPanel button');const o=b.textContent;b.textContent='\u2713 Copied!';setTimeout(()=>b.textContent=o,1500);
-  });
-}
-
-function showStateCalibPanel(abbrev) {
-  const panel=document.getElementById('stateCalibPanel');panel.style.display='block';
-  const isR=_regionViewActive&&abbrev===_regionViewKey;
-  const cm=isR?regionCalibMap:stateCalibMap, sf=isR?saveRegionCalib:saveStateCalib;
-  const af=isR?(c)=>applyRegionProjection(c):(c)=>applyStateProjection(c);
-  document.getElementById('stateCalibName').textContent=isR?abbrev+' (Region)':abbrev;
-  const calib=cm[abbrev]||{scale:1,offX:0,offY:0};
-  const ss=document.getElementById('sliderStateScale'),sx=document.getElementById('sliderStateOffX'),sy=document.getElementById('sliderStateOffY');
-  if(isR){ss.min='0.1';ss.max='5.0';sx.min='-800';sx.max='800';sy.min='-800';sy.max='800';}
-  else{ss.min='0.5';ss.max='3.0';sx.min='-200';sx.max='200';sy.min='-200';sy.max='200';}
-  ss.value=calib.scale;document.getElementById('valStateScale').textContent=calib.scale.toFixed(2)+'x';
-  ss.oninput=function(){calib.scale=parseFloat(this.value);cm[abbrev]=calib;document.getElementById('valStateScale').textContent=calib.scale.toFixed(2)+'x';af(calib);updateStateCalibOutput(abbrev);sf();};
-  sx.value=calib.offX;document.getElementById('valStateOffX').textContent=calib.offX+'px';
-  sx.oninput=function(){calib.offX=parseInt(this.value);cm[abbrev]=calib;document.getElementById('valStateOffX').textContent=calib.offX+'px';af(calib);updateStateCalibOutput(abbrev);sf();};
-  sy.value=calib.offY;document.getElementById('valStateOffY').textContent=calib.offY+'px';
-  sy.oninput=function(){calib.offY=parseInt(this.value);cm[abbrev]=calib;document.getElementById('valStateOffY').textContent=calib.offY+'px';af(calib);updateStateCalibOutput(abbrev);sf();};
-  updateStateCalibOutput(abbrev);
-}
-function updateStateCalibOutput(ab) {
-  const o=document.getElementById('stateCalibOutput');if(!o)return;
-  const ks=Object.keys(stateCalibMap).sort();let t='// Calibrated: '+ks.length+'/50 states\n';
-  if(ab&&stateCalibMap[ab]){const c=stateCalibMap[ab];t+='// '+ab+' scale:'+c.scale.toFixed(2)+' offX:'+c.offX+' offY:'+c.offY+'\n';}
-  t+='// Auto-saved \u2713';o.textContent=t;
-}
-function resetStateCalib() {
-  if(_regionViewActive&&_regionViewKey){regionCalibMap[_regionViewKey]=makeDefaultRegionCalib();saveRegionCalib();showRegionCalibPanels(_regionViewKey);applyRegionProjection(regionCalibMap[_regionViewKey]);}
-  else if(_stateViewAbbrev){stateCalibMap[_stateViewAbbrev]={scale:1,offX:0,offY:0};saveStateCalib();showStateCalibPanel(_stateViewAbbrev);applyStateProjection(stateCalibMap[_stateViewAbbrev]);}
-}
-function clearAllStateCalib() {
-  Object.keys(stateCalibMap).forEach(k=>delete stateCalibMap[k]);
-  try{localStorage.removeItem('stateCalibMap');}catch(e){}
-  if(_stateViewAbbrev){showStateCalibPanel(_stateViewAbbrev);applyStateProjection({scale:1,offX:0,offY:0});}
-}
-function copyAllStateCalib() {
-  const sk=Object.keys(stateCalibMap).sort();let t='const _defaultStateCalib = {\n';
-  sk.forEach((k,i)=>{const c=stateCalibMap[k];t+='  '+k+':{scale:'+c.scale.toFixed(2)+',offX:'+c.offX+',offY:'+c.offY+'}'+(i<sk.length-1?',':'')+'\n';});
-  t+='};\n';
-  const rk=Object.keys(regionCalibMap).sort();
-  if(rk.length){t+='\n';rk.forEach(k=>{const rp=regionCalibMap[k];t+='regionCalibMap["'+k+'"]={lat_0:'+rp.lat_0+',lon_0:'+rp.lon_0+',lat_1:'+rp.lat_1+',lat_2:'+rp.lat_2+',rotation:'+rp.rotation+',left:'+rp.left+',right:'+rp.right+',top:'+rp.top+',bottom:'+rp.bottom+',scale:'+rp.scale.toFixed(2)+',offX:'+rp.offX+',offY:'+rp.offY+'};\n';});}
-  navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector('#stateCalibPanel button');const o=b.textContent;b.textContent='\u2713 Copied!';setTimeout(()=>b.textContent=o,2000);});
-}
-
 // ── Boot ────────────────────────────────────────────────────────
 (async function boot() {
+  showLoading();
   await initGeoJSON();
   await loadRadar('USA', false);
 })();
