@@ -126,10 +126,10 @@ const RegionDisplay = {
 };
 
 const StateNames = {
-  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
+  AL:'Alabama',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
   CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',
-  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',
-  LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',
+  ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',
+  LA:'Louisiana',
   MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
   NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',
   OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
@@ -152,8 +152,7 @@ function getRegionFallback(st) {
     TX:'SOUTHCENTRAL',OK:'SOUTHCENTRAL',AR:'SOUTHCENTRAL',LA:'SOUTHCENTRAL',MO:'SOUTHCENTRAL',
     KS:'SOUTHCENTRAL',MS:'SOUTHCENTRAL',AL:'SOUTHCENTRAL',
     CA:'SOCAL',
-    NV:'SOUTHWEST',UT:'SOUTHWEST',CO:'SOUTHWEST',AZ:'SOUTHWEST',NM:'SOUTHWEST',HI:'SOUTHWEST',
-    AK:'USA'
+    NV:'SOUTHWEST',UT:'SOUTHWEST',CO:'SOUTHWEST',AZ:'SOUTHWEST',NM:'SOUTHWEST'
   };
   return m[st] || null;
 }
@@ -316,11 +315,11 @@ function geoToPixel(lng, lat) {
 }
 
 // ── States without own GIF / redirects / sub-regions ────────────
-const _noStateGif = new Set(['AK','DC','HI','RI']);
-const _stateToRegion = { AK:'USA', DC:'NORTHEAST', RI:'NORTHEAST', HI:'SOUTHWEST' };
+const _noStateGif = new Set([]);
+const _stateToRegion = {};
 const _regionDisplayNames = { USA:'USA',NORTHEAST:'NE',NORTHWEST:'NW',NORTHCENTRAL:'NC',
   SOUTHEAST:'SE',SOUTHWEST:'SW',SOUTHCENTRAL:'SC' };
-const _stateRedirect = { CT:'NY',DE:'VA',MA:'NY',MD:'VA',ME:'NH',NC:'SC',NJ:'PA',VT:'NY',WV:'VA' };
+const _stateRedirect = { CT:'NY',DC:'VA',DE:'VA',MA:'NY',MD:'VA',ME:'NH',NC:'SC',NJ:'PA',RI:'NY',VT:'NY',WV:'VA' };
 const _subRegionConfig = {
   CA: function(rx, ry) {
     if (ry > 0.60) return { key:'NORCAL', name:'N. California (NorCal)' };
