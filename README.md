@@ -1,6 +1,6 @@
 # Drizzle
 
-The worst, smallest weather application ever made.
+The best*, smallest weather application ever made.
 
 A single ~400 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies.
 
