@@ -127,7 +127,7 @@ const RegionDisplay = {
 
 const StateNames = {
   AL:'Alabama',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
-  CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',
+  CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',
   ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',
   LA:'Louisiana',
   MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
@@ -143,7 +143,7 @@ for (const [k,v] of Object.entries(StateNames)) NameToAbbrev[v] = k;
 function getRegionFallback(st) {
   const m = {
     ME:'NORTHEAST',VT:'NORTHEAST',NH:'NORTHEAST',MA:'NORTHEAST',CT:'NORTHEAST',RI:'NORTHEAST',
-    NY:'NORTHEAST',NJ:'NORTHEAST',PA:'NORTHEAST',DE:'NORTHEAST',MD:'NORTHEAST',DC:'NORTHEAST',
+    NY:'NORTHEAST',NJ:'NORTHEAST',PA:'NORTHEAST',DE:'NORTHEAST',MD:'NORTHEAST',
     WA:'NORTHWEST',OR:'NORTHWEST',ID:'NORTHWEST',MT:'NORTHWEST',WY:'NORTHWEST',
     MN:'NORTHCENTRAL',WI:'NORTHCENTRAL',MI:'NORTHCENTRAL',ND:'NORTHCENTRAL',SD:'NORTHCENTRAL',
     NE:'NORTHCENTRAL',IA:'NORTHCENTRAL',
@@ -319,7 +319,7 @@ const _noStateGif = new Set([]);
 const _stateToRegion = {};
 const _regionDisplayNames = { USA:'USA',NORTHEAST:'NE',NORTHWEST:'NW',NORTHCENTRAL:'NC',
   SOUTHEAST:'SE',SOUTHWEST:'SW',SOUTHCENTRAL:'SC' };
-const _stateRedirect = { CT:'NY',DC:'VA',DE:'VA',MA:'NY',MD:'VA',ME:'NH',NC:'SC',NJ:'PA',RI:'NY',VT:'NY',WV:'VA' };
+const _stateRedirect = { CT:'NY',DE:'VA',MA:'NY',MD:'VA',ME:'NH',NC:'SC',NJ:'PA',RI:'NY',VT:'NY',WV:'VA' };
 const _subRegionConfig = {
   CA: function(rx, ry) {
     if (ry > 0.60) return { key:'NORCAL', name:'N. California (NorCal)' };
