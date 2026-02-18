@@ -42,13 +42,13 @@ foreach ($line in $envBlock) {
 Write-Host "=== Compiling WeatherGlance-Lite ($Arch) ===" -ForegroundColor Cyan
 $null = New-Item $out -ItemType Directory -Force
 
-# Compile resource (icon)
+# Compile resource (icon + embedded assets)
 $resFile = ""
-if (Test-Path "$root\radar.ico") {
+if (Test-Path "$root\Assets\radar.ico") {
     rc /nologo /fo "$out\res.res" "$root\WeatherGlance.rc"
     $resFile = "$out\res.res"
 } else {
-    Write-Host "  No radar.ico found, skipping icon" -ForegroundColor Yellow
+    Write-Host "  No Assets\radar.ico found, skipping resources" -ForegroundColor Yellow
 }
 
 # Compile + link
