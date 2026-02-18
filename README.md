@@ -80,9 +80,9 @@ Drizzle/
 ├── WeatherGlance.rc      # Resource script (icon, embedded HTML/JSON)
 ├── Assets/
 │   ├── radar-map.html    # All UI, map, projection, and radar logic
-│   └── us-states.geo.json
+│   ├── us-states.geo.json
 ├── app.manifest          # DPI awareness, common controls
-├── radar.ico
+│   └── radar.ico
 ├── build.ps1             # One-step build script
 └── CMakeLists.txt
 ```
