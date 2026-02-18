@@ -27,8 +27,8 @@ target_link_libraries(WRG PRIVATE "${WV2_LOADER}" user32 ole32 oleaut32 gdi32 sh
 
 # Minimize exe size (Release only — these conflict with Debug /RTC1)
 target_compile_options(WRG PRIVATE
-  $<$<CONFIG:Release>:/O1 /GS- /GL>
-  $<$<CONFIG:MinSizeRel>:/O1 /GS- /GL>
+  $<$<CONFIG:Release>:/O1 /GL>
+  $<$<CONFIG:MinSizeRel>:/O1 /GL>
 )
 target_link_options(WRG PRIVATE
   $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/LTCG /OPT:REF /OPT:ICF>

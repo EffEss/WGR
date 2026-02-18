@@ -54,7 +54,7 @@ if (Test-Path "$root\Assets\radar.ico") {
 # Compile + link
 $srcFiles = @("$root\main.cpp")
 if ($resFile) { $srcFiles += $resFile }
-cl /nologo /O1 /GS- /GL /std:c++17 /EHsc `
+cl /nologo /O1 /GL /std:c++17 /EHsc `
    /I"$wv2Inc" `
    /Fe"$out\Drizzle.exe" `
    @srcFiles `
