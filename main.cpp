@@ -2,6 +2,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#include <compressapi.h>
 #include <wrl.h>
 #include <string>
 #include <thread>
@@ -9,6 +10,7 @@
 #include <shlwapi.h>
 #include "WebView2.h"
 #pragma comment(lib, "urlmon.lib")
+#pragma comment(lib, "cabinet.lib")
 using namespace Microsoft::WRL;
 
 #define IDR_RADAR_HTML  200
@@ -26,7 +28,22 @@ static IStream* LoadEmbeddedResource(int id) {
     if (!hRes) return nullptr;
     HGLOBAL hData = LoadResource(nullptr, hRes);
     if (!hData) return nullptr;
-    return SHCreateMemStream((const BYTE*)LockResource(hData), SizeofResource(nullptr, hRes));
+    const BYTE* src = (const BYTE*)LockResource(hData);
+    DWORD srcLen = SizeofResource(nullptr, hRes);
+    if (srcLen < 4) return nullptr;
+    // First 4 bytes = original size (little-endian), rest = compressed data
+    DWORD origSize = *(const DWORD*)src;
+    src += 4; srcLen -= 4;
+    DECOMPRESSOR_HANDLE dec = nullptr;
+    if (!CreateDecompressor(COMPRESS_ALGORITHM_XPRESS_HUFF, nullptr, &dec)) return nullptr;
+    auto buf = (BYTE*)HeapAlloc(GetProcessHeap(), 0, origSize);
+    SIZE_T decompressed = 0;
+    BOOL ok = Decompress(dec, (LPCVOID)src, srcLen, buf, origSize, &decompressed);
+    CloseDecompressor(dec);
+    if (!ok) { HeapFree(GetProcessHeap(), 0, buf); return nullptr; }
+    IStream* stream = SHCreateMemStream(buf, (UINT)decompressed);
+    HeapFree(GetProcessHeap(), 0, buf);
+    return stream;
 }
 
 static std::wstring GetExeDir() {

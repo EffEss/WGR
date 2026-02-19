@@ -12,10 +12,25 @@ set(WV2_INCLUDE "${WV2_DIR}/build/native/include")
 set(WV2_LIB_DIR "${WV2_DIR}/build/native/x64")
 set(WV2_LOADER "${WV2_DIR}/build/native/x64/WebView2LoaderStatic.lib")
 
+# ── Compress assets before resource compilation ──────────────────
+set(COMPRESS_SCRIPT "${CMAKE_SOURCE_DIR}/compress_assets.cmake")
+set(COMPRESSED_HTML "${CMAKE_SOURCE_DIR}/Assets/radar-map.html.compressed")
+set(COMPRESSED_JSON "${CMAKE_SOURCE_DIR}/Assets/us-states.geo.json.compressed")
+
+add_custom_command(
+  OUTPUT ${COMPRESSED_HTML} ${COMPRESSED_JSON}
+  COMMAND ${CMAKE_COMMAND} -P ${COMPRESS_SCRIPT}
+  DEPENDS "${CMAKE_SOURCE_DIR}/Assets/radar-map.html" "${CMAKE_SOURCE_DIR}/Assets/us-states.geo.json"
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMENT "Compressing web assets..."
+)
+add_custom_target(CompressAssets DEPENDS ${COMPRESSED_HTML} ${COMPRESSED_JSON})
+
 add_executable(WRG WIN32
   main.cpp
   WeatherGlance.rc
 )
+add_dependencies(WRG CompressAssets)
 set_target_properties(WRG PROPERTIES OUTPUT_NAME "Drizzle")
 
 # Embed our app manifest via CMake's native manifest support
@@ -23,7 +38,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 target_sources(WRG PRIVATE app.manifest)
 
 target_include_directories(WRG PRIVATE "${WV2_INCLUDE}")
-target_link_libraries(WRG PRIVATE "${WV2_LOADER}" user32 ole32 oleaut32 gdi32 shell32 shlwapi advapi32 urlmon)
+target_link_libraries(WRG PRIVATE "${WV2_LOADER}" user32 ole32 oleaut32 gdi32 shell32 shlwapi advapi32 urlmon cabinet)
 
 # Minimize exe size (Release only — these conflict with Debug /RTC1)
 target_compile_options(WRG PRIVATE

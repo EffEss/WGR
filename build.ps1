@@ -45,6 +45,23 @@ $null = New-Item $out -ItemType Directory -Force
 # Compile resource (icon + embedded assets)
 $resFile = ""
 if (Test-Path "$root\Assets\radar.ico") {
+    # Compress assets with XPRESS_HUFF (algorithm 5) — format: [4-byte original size][compressed data]
+    foreach ($asset in @("radar-map.html", "us-states.geo.json")) {
+        $raw = [IO.File]::ReadAllBytes("$root\Assets\$asset")
+        $compPtr = [IntPtr]::Zero
+        Add-Type -TypeDefinition "using System;using System.Runtime.InteropServices;public class XComp{[DllImport(`"cabinet.dll`")]public static extern bool CreateCompressor(int a,IntPtr b,out IntPtr h);[DllImport(`"cabinet.dll`")]public static extern bool Compress(IntPtr h,byte[] s,int sl,byte[] d,int dl,out int sz);[DllImport(`"cabinet.dll`")]public static extern bool CloseCompressor(IntPtr h);}" -EA SilentlyContinue
+        [XComp]::CreateCompressor(4, [IntPtr]::Zero, [ref]$compPtr) | Out-Null
+        $buf = New-Object byte[] ($raw.Length)
+        $compSz = 0
+        [XComp]::Compress($compPtr, $raw, $raw.Length, $buf, $buf.Length, [ref]$compSz) | Out-Null
+        [XComp]::CloseCompressor($compPtr) | Out-Null
+        $header = [BitConverter]::GetBytes([uint32]$raw.Length)
+        $outBytes = New-Object byte[] (4 + $compSz)
+        [Array]::Copy($header, 0, $outBytes, 0, 4)
+        [Array]::Copy($buf, 0, $outBytes, 4, $compSz)
+        [IO.File]::WriteAllBytes("$root\Assets\$asset.compressed", $outBytes)
+        Write-Host "  $asset : $($raw.Length) -> $($outBytes.Length) bytes"
+    }
     rc /nologo /fo "$out\res.res" "$root\WeatherGlance.rc"
     $resFile = "$out\res.res"
 } else {
@@ -60,13 +77,14 @@ cl /nologo /O1 /GL /std:c++17 /EHsc `
    @srcFiles `
    /link /LTCG /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS `
    /MANIFEST:EMBED "/MANIFESTINPUT:$root\app.manifest" `
-   "$wv2Lib" user32.lib ole32.lib oleaut32.lib gdi32.lib shell32.lib shlwapi.lib advapi32.lib
+   "$wv2Lib" user32.lib ole32.lib oleaut32.lib gdi32.lib shell32.lib shlwapi.lib advapi32.lib cabinet.lib
 
 if ($LASTEXITCODE -ne 0) { Write-Error "Compilation failed"; exit 1 }
 
 # Clean intermediate files
 Remove-Item "$out\*.obj" -Force -EA SilentlyContinue
 Remove-Item "$out\res.res" -Force -EA SilentlyContinue
+Remove-Item "$root\Assets\*.compressed" -Force -EA SilentlyContinue
 
 # ── Step 4: Report ───────────────────────────────────────────────
 $exe = Get-Item "$out\Drizzle.exe"

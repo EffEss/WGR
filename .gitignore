@@ -11,6 +11,7 @@ dist/
 *.pdb
 *.ilk
 *.exe
+*.compressed
 
 # Dependencies (downloaded by build.ps1)
 deps/
