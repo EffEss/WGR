@@ -66,6 +66,8 @@ static void ResizeWebView() {
 }
 
 static void DownloadRadarGif(std::wstring url, std::wstring region) {
+    // Sanitize region name: only allow alphanumeric characters
+    for (auto c : region) { if (!iswalnum(c)) return; }
     auto dir = GetRadarDir();
     auto dest = dir + L"\\" + region + L".gif";
     auto* r = new DlResult();
@@ -189,7 +191,7 @@ static void InitWebView() {
                                 if (stream) {
                                     ComPtr<ICoreWebView2WebResourceResponse> resp;
                                     wchar_t hdr[128];
-                                    swprintf_s(hdr, L"Content-Type: %s\r\nAccess-Control-Allow-Origin: *", ct);
+                                    swprintf_s(hdr, L"Content-Type: %s", ct);
                                     g_env->CreateWebResourceResponse(stream, 200, L"OK", hdr, &resp);
                                     args->put_Response(resp.Get());
                                     stream->Release();
@@ -213,7 +215,10 @@ static void InitWebView() {
                                     if (p2 != std::wstring::npos) {
                                         auto region = m.substr(p1 + 1, p2 - p1 - 1);
                                         auto url = m.substr(p2 + 1);
-                                        std::thread(DownloadRadarGif, url, region).detach();
+                                        // Only allow downloads from the known radar source
+                                        const std::wstring allowedPrefix = L"https://sirocco.accuweather.com/";
+                                        if (url.substr(0, allowedPrefix.size()) == allowedPrefix)
+                                            std::thread(DownloadRadarGif, url, region).detach();
                                     }
                                 } else if (p1 != std::wstring::npos && m.substr(0, p1) == L"CLEARCACHE") {
                                     CleanRadarCache();
@@ -239,7 +244,7 @@ static void InitWebView() {
                     g_webview->get_Settings(&s);
                     s->put_IsStatusBarEnabled(FALSE);
                     s->put_AreDefaultContextMenusEnabled(FALSE);
-                    s->put_AreDevToolsEnabled(TRUE);
+                    s->put_AreDevToolsEnabled(FALSE);
                     ComPtr<ICoreWebView2Settings4> s4;
                     if (SUCCEEDED(s.As(&s4))) {
                         s4->put_IsPasswordAutosaveEnabled(FALSE);
