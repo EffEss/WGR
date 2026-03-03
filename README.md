@@ -2,6 +2,8 @@
 
 The best*, smallest weather application ever made.
 
+![Drizzle header](drizzle_usa.png)
+
 A single ~237 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
@@ -20,6 +22,11 @@ Drizzle displays animated radar GIF mosaics.
 - Large states (California, Texas) are split into sub-regions with click-zone detection
 
 There is no forecast, no temperature, no hourly breakdown. Just radar. That's it.
+
+### Screenshots
+
+![USA view](drizzle_usa.png)
+![State view](drizzle_state.png)
 
 ## Why
 
@@ -75,6 +82,8 @@ Output is a single `Drizzle.exe` (~237 KB).
 
 ```
 Drizzle/
+├── drizzle_usa.png       # README header / USA screenshot
+├── drizzle_state.png     # README state-level screenshot
 ├── main.cpp              # Win32 host, WebView2 init, download threads
 ├── WeatherGlance.rc      # Resource script (icon, embedded HTML/JSON)
 ├── app.manifest          # DPI awareness, common controls
