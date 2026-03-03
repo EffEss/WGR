@@ -2,7 +2,9 @@
 
 The best*, smallest weather application ever made.
 
-![Drizzle header](drizzle_usa.png)
+<p align="center">
+  <img src="./weather.png" alt="WGR icon" width="128" />
+</p>
 
 A single ~237 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies.
 
