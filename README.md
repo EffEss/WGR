@@ -27,10 +27,14 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ### Screenshots
 
-USA
+<p align="center"><strong>USA</strong></p>
+
 ![USA view](drizzle_usa.png)
 
-State
+<br />
+
+<p align="center"><strong>State</strong></p>
+
 ![State view](drizzle_state.png)
 
 ## Why
