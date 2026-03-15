@@ -42,32 +42,9 @@ class MainActivity : ComponentActivity() {
             .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(
-                view: WebView, request: WebResourceRequest
-            ): WebResourceResponse? {
-                // Serve radar cache files from disk
-                val url = request.url
-                if (url.host == "radar-cache.local") {
-                    val name = url.lastPathSegment ?: return null
-                    // Sanitize: only allow alphanumeric + dot
-                    if (!name.matches(Regex("^[a-zA-Z0-9_.]+$"))) return null
-                    val file = File(radarDir, name)
-                    if (file.exists()) {
-                        return WebResourceResponse(
-                            "image/gif", null, file.inputStream()
-                        )
-                    }
-                    return null
-                }
-                return assetLoader.shouldInterceptRequest(request)
-            }
-        }
-
         // JS bridge: receives postMessage calls from the HTML
         webView.addJavascriptInterface(JsBridge(), "NativeBridge")
 
-        // Inject the chrome.webview shim then load the app
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
                 view: WebView, request: WebResourceRequest
@@ -82,7 +59,7 @@ class MainActivity : ComponentActivity() {
                     }
                     return null
                 }
-                return assetLoader.shouldInterceptRequest(request)
+                return assetLoader.shouldInterceptRequest(request.url)
             }
 
             override fun onPageFinished(view: WebView, url: String) {
