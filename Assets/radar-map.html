@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Drizzle</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -69,6 +69,34 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   border: 1px solid rgba(0,120,212,0.6); border-radius: 6px;
   padding: 4px 10px; font: 600 13px "Segoe UI", sans-serif;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* ── Mobile / touch overrides ───────────────────────────────── */
+@media (max-width: 768px), (pointer: coarse) {
+  #toolbar {
+    width: calc(100% - 20px); top: env(safe-area-inset-top, 6px);
+    padding: 6px 8px; gap: 4px;
+  }
+  #toolbar .title { font-size: 12px; }
+  #regionTitle { font-size: 11px; min-width: 0; }
+  .tb { padding: 6px 10px; font-size: 13px; }
+  #bottombar {
+    bottom: env(safe-area-inset-bottom, 6px);
+    left: 6px; right: 6px; padding: 6px 8px;
+    flex-wrap: wrap; gap: 4px;
+  }
+  .rb { padding: 5px 10px; font-size: 13px; }
+  #regionBtns .lbl { font-size: 12px; }
+  #statusArea { font-size: 12px; }
+  .leaflet-control-zoom a { width: 36px !important; height: 36px !important;
+    line-height: 36px !important; font-size: 20px !important; }
+}
+/* Portrait phone: shrink toolbar buttons text to prevent overflow */
+@media (max-width: 420px) {
+  #toolbar { gap: 2px; padding: 5px 6px; }
+  .tb { padding: 5px 7px; font-size: 12px; }
+  #toolbar .title { font-size: 11px; }
+  #regionTitle { font-size: 10px; }
 }
 </style>
 </head>
