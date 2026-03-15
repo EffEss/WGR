@@ -13,7 +13,7 @@ jobs:
       # Generate 1024x1024 app icon from radar.png
       - name: Generate app icon
         run: |
-          pip3 install --quiet Pillow
+          pip3 install --quiet --break-system-packages Pillow
           python3 -c "
           from PIL import Image
           src = Image.open('Assets/radar.png').convert('RGBA')
