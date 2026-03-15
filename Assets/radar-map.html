@@ -190,12 +190,13 @@ function resolveRadarUrl(region) {
   return RADAR_BASE + 'inmasir' + region.toLowerCase() + '_.gif';
 }
 
+var RADAR_CACHE_PREFIX = window.RADAR_CACHE_PREFIX || 'https://radar-cache.local/';
 var _dlCallbacks = {};
 if (window.chrome && window.chrome.webview) {
   window.chrome.webview.addEventListener('message', function(e) {
     var d = e.data;
     if (d.type === 'radarReady' && _dlCallbacks[d.region]) {
-      _dlCallbacks[d.region]({ url: 'https://radar-cache.local/' + d.file + '?t=' + Date.now(), cached: false, time: new Date(), error: null });
+      _dlCallbacks[d.region]({ url: RADAR_CACHE_PREFIX + d.file + '?t=' + Date.now(), cached: false, time: new Date(), error: null });
       delete _dlCallbacks[d.region];
     } else if (d.type === 'radarError' && _dlCallbacks[d.region]) {
       _dlCallbacks[d.region]({ url: null, cached: false, time: null, error: d.error });

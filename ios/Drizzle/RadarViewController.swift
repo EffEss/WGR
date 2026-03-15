@@ -125,6 +125,7 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     static let bridgeShim = """
     (function() {
         var listeners = [];
+        window.RADAR_CACHE_PREFIX = 'app://radar-cache.local/';
         window.chrome = window.chrome || {};
         window.chrome.webview = {
             postMessage: function(msg) { window.webkit.messageHandlers.bridge.postMessage(msg); },
