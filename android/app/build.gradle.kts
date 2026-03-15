@@ -20,6 +20,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // Sign with debug key for side-loading; replace with real key for Play Store
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
