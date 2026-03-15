@@ -43,3 +43,6 @@ ios/Drizzle.xcodeproj/xcuserdata/
 ios/Drizzle.xcodeproj/project.xcworkspace/xcuserdata/
 ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 *.ipa
+
+# README screenshots (cosmetic only, not needed for builds)
+# drizzle_usa.png, drizzle_state.png, weather.png kept tracked for README rendering
