@@ -59,12 +59,17 @@ class MainActivity : ComponentActivity() {
                     }
                     return null
                 }
+                // Inject bridge shim into radar-map.html before any page JS runs
+                if (url.host == "app.local" && url.path?.contains("radar-map.html") == true) {
+                    val html = assets.open("radar-map.html").bufferedReader().readText()
+                    val shimScript = "<script>$BRIDGE_SHIM_RAW</script>"
+                    val patched = html.replaceFirst("<head>", "<head>$shimScript")
+                    return WebResourceResponse(
+                        "text/html", "utf-8",
+                        patched.byteInputStream(Charsets.UTF_8)
+                    )
+                }
                 return assetLoader.shouldInterceptRequest(request.url)
-            }
-
-            override fun onPageFinished(view: WebView, url: String) {
-                // Inject shim that maps chrome.webview API to our NativeBridge
-                view.evaluateJavascript(BRIDGE_SHIM, null)
             }
         }
 
@@ -129,14 +134,14 @@ class MainActivity : ComponentActivity() {
         val escaped = json.replace("\\", "\\\\").replace("'", "\\'")
         runOnUiThread {
             webView.evaluateJavascript(
-                "window.chrome.webview._dispatch($escaped)", null
+                "window.chrome.webview._dispatch('$escaped')", null
             )
         }
     }
 
     companion object {
-        // Shim that makes the HTML think it's running in WebView2
-        private const val BRIDGE_SHIM = """
+        // Raw JS shim injected into <head> before any page scripts run
+        private const val BRIDGE_SHIM_RAW = """
             (function() {
                 var listeners = [];
                 window.chrome = window.chrome || {};
