@@ -1,0 +1,37 @@
+name: iOS
+on:
+  push:
+    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/radar.png']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Generate 1024x1024 app icon from radar.png
+      - name: Generate app icon
+        run: |
+          pip3 install --quiet Pillow
+          python3 -c "
+          from PIL import Image
+          src = Image.open('Assets/radar.png').convert('RGBA')
+          src.resize((1024,1024), Image.LANCZOS).save('ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png')
+          "
+
+      - name: Build
+        run: |
+          xcodebuild -project ios/Drizzle.xcodeproj \
+            -scheme Drizzle \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Drizzle.xcarchive \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drizzle-ios
+          path: build/Drizzle.xcarchive

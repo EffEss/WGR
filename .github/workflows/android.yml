@@ -1,0 +1,49 @@
+name: Android
+on:
+  push:
+    paths: ['android/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/radar.png']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Copy shared assets into the Android project
+      - name: Sync shared assets
+        run: |
+          mkdir -p app/src/main/assets
+          cp ../Assets/radar-map.html app/src/main/assets/
+          cp ../Assets/us-states.geo.json app/src/main/assets/
+
+      # Generate adaptive icon PNGs from radar.png
+      - name: Generate launcher icons
+        run: |
+          pip install --quiet Pillow
+          python -c "
+          from PIL import Image
+          import os
+          src = Image.open('../Assets/radar.png').convert('RGBA')
+          for dpi, s in {'xxxhdpi':192,'xxhdpi':144,'xhdpi':96,'hdpi':72,'mdpi':48}.items():
+              d = f'app/src/main/res/mipmap-{dpi}'
+              os.makedirs(d, exist_ok=True)
+              src.resize((s,s), Image.LANCZOS).save(f'{d}/ic_launcher_foreground.png')
+          "
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drizzle-android
+          path: android/app/build/outputs/apk/release/*.apk

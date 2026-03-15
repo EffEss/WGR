@@ -22,7 +22,24 @@ radar/
 
 # Build artifacts
 *.zip
+*.7z
 
 # Internal docs
 accuweather.md
 *.calibration
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/app/src/main/assets/
+android/app/src/main/res/mipmap-*/ic_launcher_foreground.png
+*.apk
+
+# iOS
+ios/build/
+ios/DerivedData/
+ios/Drizzle.xcodeproj/xcuserdata/
+ios/Drizzle.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+*.ipa
