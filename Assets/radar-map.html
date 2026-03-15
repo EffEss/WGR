@@ -13,6 +13,9 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   font-family: "Segoe UI Variable", "Segoe UI", sans-serif; color: #e0e0e0; }
 #map { width: 100%; height: 100%; background: #0D1117; }
 .leaflet-container { background: #0D1117 !important; }
+.state-hit-area {
+  pointer-events: all !important;
+}
 .leaflet-control-zoom {
   position: fixed !important; right: 10px !important; left: auto !important;
   top: 50% !important; transform: translateY(-50%) !important;
@@ -509,12 +512,33 @@ function flyToUSA() { clearStateOverlay(); map.flyToBounds(gifBounds, {duration:
 
 // ── GeoJSON layer ───────────────────────────────────────────────
 let statesLayer = null;
-const defaultStyle = { color:'transparent', weight:0, fillColor:'transparent', fillOpacity:0 };
+let _lastTouchSelectionAt = 0;
+const defaultStyle = {
+  color:'#fff',
+  opacity:0.001,
+  weight:1,
+  fillColor:'#fff',
+  fillOpacity:0.001,
+  className:'state-hit-area'
+};
 
 function bindFeatureInteraction(feature, layer) {
   const abbrev = feature.properties.STUSPS || '';
   const name = feature.properties.NAME || feature.properties.name || abbrev;
   if (abbrev && feature.properties._geoBounds) stateBoundsMap[abbrev] = feature.properties._geoBounds;
+  let touchStartPoint = null;
+  let touchActive = false;
+
+  function selectFromEvent(e) {
+    let clickAbbrev = abbrev, clickName = name;
+    if (subFn && e && e.latlng) {
+      const r = getRelPos(layer, e.latlng);
+      const sub = subFn(r.x, r.y);
+      clickAbbrev = sub.key;
+      clickName = sub.name;
+    }
+    handleStateClick(clickAbbrev, clickName);
+  }
 
   const subFn = _subRegionConfig[abbrev];
   if (subFn) {
@@ -526,10 +550,25 @@ function bindFeatureInteraction(feature, layer) {
         : name+(abbrev?' ('+abbrev+')':''));
     if (tip) layer.bindTooltip(tip, { className:'state-tooltip', sticky:true, direction:'top', offset:[0,-10] });
   }
+  layer.on('touchstart', function(e) {
+    touchActive = true;
+    touchStartPoint = e.latlng ? map.latLngToContainerPoint(e.latlng) : null;
+  });
+  layer.on('touchend', function(e) {
+    if (!touchActive) return;
+    touchActive = false;
+    const endPoint = e.latlng ? map.latLngToContainerPoint(e.latlng) : null;
+    if (touchStartPoint && endPoint && touchStartPoint.distanceTo(endPoint) > 16) return;
+    _lastTouchSelectionAt = Date.now();
+    selectFromEvent(e);
+  });
+  layer.on('touchcancel', function() {
+    touchActive = false;
+    touchStartPoint = null;
+  });
   layer.on('click', function(e) {
-    let clickAbbrev = abbrev, clickName = name;
-    if (subFn) { const r=getRelPos(layer,e.latlng); const sub=subFn(r.x,r.y); clickAbbrev=sub.key; clickName=sub.name; }
-    handleStateClick(clickAbbrev, clickName);
+    if (Date.now() - _lastTouchSelectionAt < 750) return;
+    selectFromEvent(e);
   });
 }
 
