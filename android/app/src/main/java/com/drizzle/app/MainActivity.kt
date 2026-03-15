@@ -2,6 +2,7 @@ package com.drizzle.app
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
 import android.webkit.*
 import androidx.activity.ComponentActivity
 import androidx.webkit.WebViewAssetLoader
@@ -26,6 +27,9 @@ class MainActivity : ComponentActivity() {
         // Edge-to-edge dark background
         window.statusBarColor = 0xFF0D1117.toInt()
         window.navigationBarColor = 0xFF0D1117.toInt()
+
+        // Immersive sticky: hides status + nav bars, swipe edge to reveal
+        enableImmersiveMode()
 
         webView = WebView(this).apply {
             setBackgroundColor(0xFF0D1117.toInt())
@@ -81,6 +85,23 @@ class MainActivity : ComponentActivity() {
         // Clean radar cache on exit
         radarDir.listFiles()?.forEach { it.delete() }
         super.onDestroy()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) enableImmersiveMode()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun enableImmersiveMode() {
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            or View.SYSTEM_UI_FLAG_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        )
     }
 
     @Suppress("unused")
