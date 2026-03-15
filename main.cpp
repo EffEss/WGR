@@ -271,11 +271,17 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, LPWSTR, int nShow) {
     wc.lpszClassName = L"WeatherGlanceLite";
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = CreateSolidBrush(RGB(13, 17, 23));
-    wc.hIcon = LoadIconW(hInst, MAKEINTRESOURCEW(101));
+    wc.hIcon = (HICON)LoadImageW(hInst, MAKEINTRESOURCEW(101), IMAGE_ICON,
+        GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR);
     RegisterClassW(&wc);
     g_hwnd = CreateWindowExW(0, L"WeatherGlanceLite", L"Drizzle",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 700, 620,
         nullptr, nullptr, hInst, nullptr);
+    // Set both big (taskbar/Alt-Tab) and small (title bar) icons with alpha
+    HICON hIconSm = (HICON)LoadImageW(hInst, MAKEINTRESOURCEW(101), IMAGE_ICON,
+        GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+    SendMessageW(g_hwnd, WM_SETICON, ICON_BIG, (LPARAM)wc.hIcon);
+    SendMessageW(g_hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIconSm);
     ShowWindow(g_hwnd, nShow);
     UpdateWindow(g_hwnd);
     InitWebView();
