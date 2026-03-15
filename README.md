@@ -6,11 +6,14 @@ The best*, smallest weather application ever made.
   <img src="./weather.png" alt="WGR icon" width="128" />
 </p>
 
-A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies.
+A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK, with iOS in progress.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
+![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
+![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~171%20KB-green)
+![APK](https://img.shields.io/badge/apk-~239%20KB-green)
 
 ---
 
@@ -39,7 +42,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows and under 240 KB on Android.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -85,24 +88,55 @@ cmake --build out/build/x64-Release
 
 Output is a single `Drizzle.exe` (~171 KB).
 
+### Android
+
+Built automatically via GitHub Actions. To build locally:
+
+```sh
+cd android
+# Sync shared assets from Assets/
+powershell ./sync-assets.ps1
+gradle assembleRelease
+```
+
+Output is `app/build/outputs/apk/release/app-release.apk` (~239 KB).
+
+### iOS (WIP)
+
+Requires a Mac with Xcode 16+.
+
+```sh
+# Generate app icon
+pip3 install Pillow
+python3 -c "from PIL import Image; Image.open('Assets/radar.png').convert('RGBA').resize((1024,1024)).save('ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png')"
+
+# Open in Xcode, set your team, and run
+open ios/Drizzle.xcodeproj
+```
+
 ---
 
 ## Project Structure
 
 ```
 Drizzle/
-├── drizzle_usa.png       # README header / USA screenshot
-├── drizzle_state.png     # README state-level screenshot
 ├── main.cpp              # Win32 host, WebView2 init, download threads
 ├── WeatherGlance.rc      # Resource script (icon, embedded HTML/JSON)
 ├── app.manifest          # DPI awareness, common controls
-├── build.ps1             # One-step build script
+├── build.ps1             # One-step Windows build script
 ├── CMakeLists.txt
-└── Assets/
-    ├── radar-map.html    # All UI, map, projection, and radar logic
-    ├── us-states.geo.json
-    ├── radar.png         # Icon source (256×256)
-    └── radar.ico
+├── Assets/               # Shared across all platforms
+│   ├── radar-map.html    # All UI, map, projection, and radar logic
+│   ├── us-states.geo.json
+│   ├── radar.png         # Icon source (256×256)
+│   └── radar.ico         # Windows icon (16/32/48/256)
+├── android/              # Android WebView wrapper (Kotlin)
+│   └── app/src/main/java/com/drizzle/app/MainActivity.kt
+├── ios/                  # iOS WebView wrapper (Swift, WIP)
+│   └── Drizzle/
+│       ├── RadarViewController.swift
+│       └── AppSchemeHandler.swift
+└── .github/workflows/    # CI: builds APK + iOS archive on push
 ```
 
 ---
