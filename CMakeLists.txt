@@ -33,6 +33,9 @@ add_executable(WRG WIN32
 add_dependencies(WRG CompressAssets)
 set_target_properties(WRG PROPERTIES OUTPUT_NAME "Drizzle")
 
+# Ensure the .rc recompiles when the icon changes
+set_property(SOURCE WeatherGlance.rc PROPERTY OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/Assets/radar.ico")
+
 # Embed our app manifest via CMake's native manifest support
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 target_sources(WRG PRIVATE app.manifest)
