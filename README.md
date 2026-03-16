@@ -43,9 +43,9 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 <br />
 
 <p align="center"><strong>Android</strong></p>
-</p>
-![Android view](Assets/android.png)
 
+![Android view](Assets/android.png)
+</p>
 ## Why
 
 Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows and under 240 KB on Android.
