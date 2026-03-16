@@ -27,6 +27,7 @@ radar/
 # Internal docs
 accuweather.md
 *.calibration
+*.psd
 
 # Android
 android/.gradle/
