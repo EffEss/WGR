@@ -44,6 +44,36 @@ class AppSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
 
+        if path == "radar-map.html" {
+            guard let htmlURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Assets"),
+                  let html = try? String(contentsOf: htmlURL, encoding: .utf8),
+                  let geoURL = Bundle.main.url(forResource: "us-states.geo", withExtension: "json", subdirectory: "Assets"),
+                  let geoJSON = try? String(contentsOf: geoURL, encoding: .utf8) else {
+                urlSchemeTask.didFailWithError(URLError(.cannotOpenFile))
+                return
+            }
+
+            let escapedGeoJSON = geoJSON.replacingOccurrences(of: "</script", with: "<\\/script")
+            let injection = "<script>window.__US_STATES_GEOJSON__ = \(escapedGeoJSON);</script>"
+            let patchedHTML: String
+            if html.contains("</head>") {
+                patchedHTML = html.replacingOccurrences(of: "</head>", with: "\(injection)</head>")
+            } else {
+                patchedHTML = injection + html
+            }
+
+            guard let data = patchedHTML.data(using: .utf8) else {
+                urlSchemeTask.didFailWithError(URLError(.cannotDecodeContentData))
+                return
+            }
+
+            let response = URLResponse(url: url, mimeType: "text/html", expectedContentLength: data.count, textEncodingName: "utf-8")
+            urlSchemeTask.didReceive(response)
+            urlSchemeTask.didReceive(data)
+            urlSchemeTask.didFinish()
+            return
+        }
+
         guard let fileURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Assets") else {
             urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
             return

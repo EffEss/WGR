@@ -21,6 +21,78 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         // Inject shim that maps chrome.webview → our bridge
         let shim = WKUserScript(source: Self.bridgeShim, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         controller.addUserScript(shim)
+
+        let cssInjection = """
+        (function(){try{
+          var style = document.createElement('style');
+          style.textContent = `
+            img[src$=".gif"], canvas { pointer-events: none !important; }
+            svg, svg * { pointer-events: auto !important; }
+          `;
+          document.documentElement.appendChild(style);
+        } catch(e) {}}
+        )();
+        """
+        let cssScript = WKUserScript(source: cssInjection, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+        controller.addUserScript(cssScript)
+
+        let layeringFix = """
+        (function(){
+          try {
+            function looksLikeRadar(bg) {
+              if (!bg) return false;
+              bg = String(bg).toLowerCase();
+              return bg.includes('.gif') || bg.includes('accuweather') || bg.includes('radar');
+            }
+            function patchNode(el) {
+              try {
+                // If it's an IMG that looks like radar, disable hit-testing
+                if (el.tagName === 'IMG') {
+                  var src = (el.getAttribute('src') || '').toLowerCase();
+                  if (src.includes('.gif') || src.includes('accuweather') || src.includes('radar')) {
+                    el.style.pointerEvents = 'none';
+                  }
+                }
+                // If it has a radar-looking background, disable hit-testing
+                var cs = window.getComputedStyle(el);
+                if (cs && looksLikeRadar(cs.backgroundImage)) {
+                  el.style.pointerEvents = 'none';
+                }
+                // Ensure SVG overlays are clickable and above
+                if (el instanceof SVGElement || (el.querySelector && el.querySelector('svg'))) {
+                  var svgs = (el instanceof SVGElement) ? [el] : el.querySelectorAll('svg');
+                  svgs.forEach(function(svg){
+                    svg.style.pointerEvents = 'auto';
+                    svg.style.position = 'relative';
+                    svg.style.zIndex = '1000';
+                    svg.style.touchAction = 'manipulation';
+                    svg.querySelectorAll('*').forEach(function(n){ n.style.pointerEvents = 'auto'; });
+                  });
+                }
+              } catch (_) {}
+            }
+            // Initial pass over existing nodes
+            Array.prototype.forEach.call(document.querySelectorAll('*'), patchNode);
+            // Observe future DOM changes
+            var observer = new MutationObserver(function(muts){
+              muts.forEach(function(m){
+                if (m.addedNodes) {
+                  m.addedNodes.forEach(function(n){
+                    if (n && n.nodeType === 1) {
+                      patchNode(n);
+                      if (n.querySelectorAll) Array.prototype.forEach.call(n.querySelectorAll('*'), patchNode);
+                    }
+                  });
+                }
+              });
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+          } catch (e) {}
+        })();
+        """
+        let layeringScript = WKUserScript(source: layeringFix, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        controller.addUserScript(layeringScript)
+
         config.userContentController = controller
 
         // Register custom scheme handler for app.local and radar-cache.local

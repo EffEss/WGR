@@ -8,7 +8,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/proj4@2.12.1/dist/proj4.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   font-family: "Segoe UI Variable", "Segoe UI", sans-serif; color: #e0e0e0; }
 #map { width: 100%; height: 100%; background: #0D1117; }
@@ -17,17 +17,23 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   pointer-events: all !important;
 }
 .leaflet-control-zoom {
-  position: fixed !important; right: 10px !important; left: auto !important;
-  top: 50% !important; transform: translateY(-50%) !important;
+  position: fixed !important;
+  right: calc(env(safe-area-inset-right, 0px) + 10px) !important;
+  left: auto !important;
+  top: calc(50% + (env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2) !important;
+  transform: translateY(-50%) !important;
   z-index: 9000;
 }
 .leaflet-control-attribution { display: none !important; }
 
 /* ── Floating toolbars ──────────────────────────────────────────── */
 #toolbar {
-  position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 9000;
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 6px);
+  left: calc(env(safe-area-inset-left, 0px) + 10px);
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+  z-index: 9000;
   display: flex; align-items: center; gap: 8px;
-  width: calc(100% - 168px); max-width: 900px;
   padding: 6px 10px; border-radius: 8px;
   background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -44,7 +50,11 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 .tb:active { background: rgba(0,120,212,0.4); }
 
 #bottombar {
-  position: fixed; bottom: 6px; left: 10px; right: 10px; z-index: 9000;
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+  left: calc(env(safe-area-inset-left, 0px) + 10px);
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+  z-index: 9000;
   display: flex; align-items: center; gap: 8px;
   padding: 6px 10px; border-radius: 8px;
   background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
@@ -65,7 +75,6 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   font: 600 16px "Segoe UI Variable", "Segoe UI", sans-serif;
   color: rgba(255,255,255,0.6); letter-spacing: 1px;
 }
-
 /* ── State tooltip ──────────────────────────────────────────── */
 .state-tooltip {
   background: rgba(30,30,46,0.92); color: #fff;
@@ -77,15 +86,15 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 /* ── Mobile / touch overrides ───────────────────────────────── */
 @media (max-width: 768px), (pointer: coarse) {
   #toolbar {
-    width: calc(100% - 20px); top: env(safe-area-inset-top, 6px);
     padding: 6px 8px; gap: 4px;
   }
   #toolbar .title { font-size: 12px; }
   #regionTitle { font-size: 11px; min-width: 0; }
   .tb { padding: 6px 10px; font-size: 13px; }
   #bottombar {
-    bottom: env(safe-area-inset-bottom, 6px);
-    left: 6px; right: 6px; padding: 6px 8px;
+    left: calc(env(safe-area-inset-left, 0px) + 6px);
+    right: calc(env(safe-area-inset-right, 0px) + 6px);
+    padding: 6px 8px;
     flex-wrap: wrap; gap: 4px;
   }
   .rb { padding: 5px 10px; font-size: 13px; }
@@ -309,14 +318,50 @@ const map = L.map('map', {
   maxBounds: [[-100, -100], [IMG_H + 100, IMG_W + 100]],
   maxBoundsViscosity: 0.8
 });
-map.fitBounds(gifBounds);
+map.createPane('radarPane');
+map.getPane('radarPane').style.zIndex = 200;
+map.createPane('hitPane');
+map.getPane('hitPane').style.zIndex = 450;
+map.getPane('hitPane').style.pointerEvents = 'auto';
 L.control.zoom({ position: 'topright' }).addTo(map);
+
+function getMapFitPadding() {
+  const zoom = document.querySelector('.leaflet-control-zoom');
+  const rightInset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-right)')) || 0;
+  const leftInset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')) || 0;
+  const rightPad = Math.ceil((zoom?.offsetWidth || 0) + rightInset + 16);
+  const leftPad = Math.ceil(leftInset + 8);
+  return {
+    paddingTopLeft: [leftPad, 8],
+    paddingBottomRight: [rightPad, 8]
+  };
+}
+
+function relayoutMap() {
+  map.invalidateSize(false);
+  map.fitBounds(gifBounds, Object.assign({ animate: false }, getMapFitPadding()));
+}
+
+let _relayoutTimer = null;
+function scheduleRelayout() {
+  if (_relayoutTimer) clearTimeout(_relayoutTimer);
+  requestAnimationFrame(relayoutMap);
+  _relayoutTimer = setTimeout(relayoutMap, 120);
+  setTimeout(relayoutMap, 320);
+}
+
+requestAnimationFrame(scheduleRelayout);
 
 // Re-fit GIF to window on resize
 window.addEventListener('resize', function() {
-  map.invalidateSize();
-  map.fitBounds(gifBounds, { animate: false });
+  scheduleRelayout();
 });
+window.addEventListener('orientationchange', function() {
+  scheduleRelayout();
+});
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', scheduleRelayout);
+}
 
 // ── LCC projection
 const LCC_PARAMS = { lat_0: 37.8, lon_0: -97.4, lat_1: 89.0, lat_2: 89.0 };
@@ -438,7 +483,7 @@ try { const s = JSON.parse(localStorage.getItem('stateCalibMap'));
 function setNationalRadar(url) {
   if (stateOverlay) { map.removeLayer(stateOverlay); stateOverlay = null; }
   if (nationalOverlay) map.removeLayer(nationalOverlay);
-  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false, pane:'radarPane' });
   nationalOverlay.addTo(map);
   if (_stateViewActive || _regionViewActive) {
     _stateViewActive = false; _stateViewAbbrev = '';
@@ -451,7 +496,7 @@ function setNationalRadar(url) {
 function setRegionRadar(url, regionKey) {
   if (stateOverlay) { map.removeLayer(stateOverlay); stateOverlay = null; }
   if (nationalOverlay) map.removeLayer(nationalOverlay);
-  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  nationalOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false, pane:'radarPane' });
   nationalOverlay.addTo(map);
   _stateViewActive = false; _stateViewAbbrev = '';
   _regionViewActive = true; _regionViewKey = regionKey || '';
@@ -476,7 +521,7 @@ function setStateRadar(url, abbrev) {
   _stateViewActive = true; _stateViewAbbrev = abbrev;
   if (nationalOverlay) nationalOverlay.setOpacity(0);
   if (stateOverlay) map.removeLayer(stateOverlay);
-  stateOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false });
+  stateOverlay = L.imageOverlay(url, gifBounds, { opacity:1, interactive:false, pane:'radarPane' });
   stateOverlay.addTo(map);
   _stateViewCenter = { lat:(sb.minLat+sb.maxLat)/2, lng:(sb.minLng+sb.maxLng)/2 };
   const cosLat = Math.cos(_stateViewCenter.lat * Math.PI / 180);
@@ -601,11 +646,13 @@ function rebuildPolygons(projFn) {
     let minLat=90,maxLat=-90,minLng=180,maxLng=-180;
     (function walk(c){if(typeof c[0]==='number'){const lng=c[0],lat=c[1];
       if(lat<minLat)minLat=lat;if(lat>maxLat)maxLat=lat;if(lng<minLng)minLng=lng;if(lng>maxLng)maxLng=lng;
-      const[py,px]=projFn(lng,lat);c[0]=px;c[1]=py;}else{for(const x of c)walk(x);}})(f.geometry.coordinates);
+      const[py,px]=projFn(lng,lat);c[0]=px;c[1]=py;
+    }else{for(const x of c)walk(x);}})(f.geometry.coordinates);
     f.properties._geoBounds={minLat,maxLat,minLng,maxLng};
   }
   statesLayer = L.geoJSON(clone, {
     coordsToLatLng: c => L.latLng(c[1], c[0]),
+    pane: 'hitPane',
     style: defaultStyle,
     onEachFeature: bindFeatureInteraction
   }).addTo(map);
@@ -663,7 +710,20 @@ async function loadStateRadar(abbrev, name) {
 // ── GeoJSON loading (replaces C# InjectPostalCodes) ─────────────
 async function initGeoJSON() {
   try {
-    const resp = await fetch('us-states.geo.json');
+    if (window.__US_STATES_GEOJSON__) {
+      const geo = window.__US_STATES_GEOJSON__;
+      for (const f of geo.features) {
+        const name = f.properties && f.properties.name;
+        if (name && NameToAbbrev[name]) f.properties.STUSPS = NameToAbbrev[name];
+      }
+      _origGeoJSON = JSON.stringify(geo);
+      rebuildPolygons(geoToPixel);
+      initSubRegionBounds();
+      return;
+    }
+
+    const geoURL = new URL('us-states.geo.json', window.location.href).toString();
+    const resp = await fetch(geoURL);
     if (!resp.ok) { setStatus('GeoJSON load failed: HTTP ' + resp.status); return; }
     const geo = await resp.json();
     // Inject STUSPS postal codes from state name
