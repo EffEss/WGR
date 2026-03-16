@@ -45,9 +45,9 @@ class AppSchemeHandler: NSObject, WKURLSchemeHandler {
         }
 
         if path == "radar-map.html" {
-            guard let htmlURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Assets"),
+            guard let htmlURL = Bundle.main.url(forResource: "radar-map", withExtension: "html"),
                   let html = try? String(contentsOf: htmlURL, encoding: .utf8),
-                  let geoURL = Bundle.main.url(forResource: "us-states.geo", withExtension: "json", subdirectory: "Assets"),
+                  let geoURL = Bundle.main.url(forResource: "us-states.geo", withExtension: "json"),
                   let geoJSON = try? String(contentsOf: geoURL, encoding: .utf8) else {
                 urlSchemeTask.didFailWithError(URLError(.cannotOpenFile))
                 return
@@ -74,7 +74,9 @@ class AppSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
 
-        guard let fileURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Assets") else {
+        let name = (path as NSString).deletingPathExtension
+        let ext = (path as NSString).pathExtension
+        guard let fileURL = Bundle.main.url(forResource: name, withExtension: ext) else {
             urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
             return
         }

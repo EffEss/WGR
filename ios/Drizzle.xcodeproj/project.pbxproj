@@ -11,8 +11,9 @@
 		A1000002 /* RadarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* RadarViewController.swift */; };
 		A1000003 /* AppSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppSchemeHandler.swift */; };
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
-		A1000006 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* Assets */; };
+		A1000006 /* radar-map.html in Resources */ = {isa = PBXBuildFile; fileRef = A2000011 /* radar-map.html */; };
 		A1000007 /* AppIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppIcon.png */; };
+		A1000008 /* us-states.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000012 /* us-states.geo.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,9 +21,10 @@
 		A2000002 /* RadarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadarViewController.swift; sourceTree = "<group>"; };
 		A2000003 /* AppSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemeHandler.swift; sourceTree = "<group>"; };
 		A2000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A2000006 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = ../Assets; sourceTree = SOURCE_ROOT; };
 		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000008 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
+		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
+		A2000012 /* us-states.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "us-states.geo.json"; path = "../Assets/us-states.geo.json"; sourceTree = SOURCE_ROOT; };
 		A2000010 /* Drizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Drizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -54,7 +56,8 @@
 				A2000004 /* Assets.xcassets */,
 				A2000008 /* AppIcon.png */,
 				A2000007 /* Info.plist */,
-				A2000006 /* Assets */,
+				A2000011 /* radar-map.html */,
+				A2000012 /* us-states.geo.json */,
 			);
 			path = Drizzle;
 			sourceTree = "<group>";
@@ -121,7 +124,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000004 /* Assets.xcassets in Resources */,
-				A1000006 /* Assets in Resources */,
+				A1000006 /* radar-map.html in Resources */,
+				A1000008 /* us-states.geo.json in Resources */,
 				A1000007 /* AppIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
