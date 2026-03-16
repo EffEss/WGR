@@ -29,7 +29,7 @@ Drizzle displays animated radar GIF mosaics.
 There is no forecast, no temperature, no hourly breakdown. Just radar. That's it.
 
 ### Screenshots
-
+<p align="center">
 <p align="center"><strong>USA</strong></p>
 
 ![USA view](drizzle_usa.png)
@@ -43,7 +43,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 <br />
 
 <p align="center"><strong>Android</strong></p>
-
+</p>
 ![Android view](Assets/android.png)
 
 ## Why
