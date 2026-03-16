@@ -3,6 +3,9 @@
 *.user
 *.suo
 
+# macOS
+.DS_Store
+
 # Build output
 out/
 dist/
