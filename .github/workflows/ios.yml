@@ -10,9 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Copy pre-made 1024x1024 icon into the asset catalog
+      # Copy icon as a loose bundle resource (avoids .car duplication)
       - name: Copy app icon
-        run: cp Assets/1024.png ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+        run: cp Assets/1024.png ios/Drizzle/AppIcon.png
 
       - name: Build
         run: |

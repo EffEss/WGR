@@ -46,6 +46,7 @@ ios/DerivedData/
 ios/Drizzle.xcodeproj/xcuserdata/
 ios/Drizzle.xcodeproj/project.xcworkspace/xcuserdata/
 ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+ios/Drizzle/AppIcon.png
 *.ipa
 
 # README screenshots (cosmetic only, not needed for builds)

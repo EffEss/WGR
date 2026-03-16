@@ -12,6 +12,7 @@
 		A1000003 /* AppSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppSchemeHandler.swift */; };
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
 		A1000006 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* Assets */; };
+		A1000007 /* AppIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppIcon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,7 @@
 		A2000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000006 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = ../Assets; sourceTree = SOURCE_ROOT; };
 		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000008 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
 		A2000010 /* Drizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Drizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -50,6 +52,7 @@
 				A2000002 /* RadarViewController.swift */,
 				A2000003 /* AppSchemeHandler.swift */,
 				A2000004 /* Assets.xcassets */,
+				A2000008 /* AppIcon.png */,
 				A2000007 /* Info.plist */,
 				A2000006 /* Assets */,
 			);
@@ -119,6 +122,7 @@
 			files = (
 				A1000004 /* Assets.xcassets in Resources */,
 				A1000006 /* Assets in Resources */,
+				A1000007 /* AppIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,7 +237,7 @@
 		A8000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = $(DRIZZLE_DEVELOPMENT_TEAM);
@@ -253,7 +257,7 @@
 		A8000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = $(DRIZZLE_DEVELOPMENT_TEAM);
