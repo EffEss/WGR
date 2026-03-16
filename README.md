@@ -6,15 +6,15 @@ The best*, smallest weather application ever made.
   <img src="./Assets/1024a.png" alt="WGR icon" width="256" />
 </p>
 
-A single ~132 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~211 KB Android APK and a ~267 KB iOS app.
+Also available as a ~219 KB Android APK and a ~275 KB iOS app.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
 ![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~132%20KB-green)
-![APK](https://img.shields.io/badge/apk-~211%20KB-green)
-![iOS](https://img.shields.io/badge/ios-~267%20KB-green)
+![APK](https://img.shields.io/badge/apk-~219%20KB-green)
+![iOS](https://img.shields.io/badge/ios-~275%20KB-green)
 
 ---
 
@@ -58,7 +58,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 135 KB on Windows, under 215 KB on Android, and under 270 KB on iOS.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 135 KB on Windows, under 220 KB on Android, and under 275 KB on iOS.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -115,7 +115,7 @@ powershell ./sync-assets.ps1
 gradle assembleRelease
 ```
 
-Output is `app/build/outputs/apk/release/app-release.apk` (~211 KB).
+Output is `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~219 KB).
 
 ### iOS
 
@@ -129,7 +129,7 @@ cp Assets/1024.png ios/Drizzle/AppIcon.png
 open ios/Drizzle.xcodeproj
 ```
 
-App size on device: ~267 KB.
+App size on device: ~275 KB.
 
 ---
 
