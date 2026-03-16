@@ -44,7 +44,12 @@ jobs:
       - name: Build APK
         run: gradle assembleRelease --no-daemon
 
+      - name: Rename APK
+        run: |
+          VERSION=$(grep 'versionName' app/build.gradle.kts | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/Drizzle_v${VERSION}.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: drizzle-android
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/Drizzle_v*.apk
