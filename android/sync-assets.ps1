@@ -11,7 +11,7 @@ Copy-Item "$root\Assets\radar-map.html" "$dest\radar-map.html" -Force
 Copy-Item "$root\Assets\us-states.geo.json" "$dest\us-states.geo.json" -Force
 
 # Generate foreground icon PNGs for Android adaptive icon
-$src = "$root\Assets\radar.png"
+$src = "$root\Assets\1024.png"
 if (Test-Path $src) {
     python -c @"
 from PIL import Image
