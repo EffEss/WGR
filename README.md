@@ -17,6 +17,14 @@ A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United State
 
 ---
 
+## Acknowledgments
+
+Radar imagery is provided by [AccuWeather](https://www.accuweather.com) via their [Sirocco](https://sirocco.accuweather.com) public radar mosaic service. AccuWeather has made these animated NEXRAD composites freely available for decades — this project wouldn't exist without that generosity. Thank you, AccuWeather.
+
+This project is not affiliated with, endorsed by, or sponsored by AccuWeather, Inc. All imagery and trademarks remain the property of their respective owners. Please respect AccuWeather's [Terms of Use](https://www.accuweather.com/en/legal).
+
+---
+
 ## What It Does
 
 Drizzle displays animated radar GIF mosaics.
@@ -139,7 +147,7 @@ Drizzle/
 │   └── radar.ico         # Windows icon (16/32/48/256)
 ├── android/              # Android WebView wrapper (Kotlin)
 │   └── app/src/main/java/com/drizzle/app/MainActivity.kt
-├── ios/                  # iOS WebView wrapper (Swift, WIP)
+├── ios/                  # iOS WebView wrapper (Swift)
 │   └── Drizzle/
 │       ├── RadarViewController.swift
 │       └── AppSchemeHandler.swift
