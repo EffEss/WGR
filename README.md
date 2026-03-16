@@ -6,7 +6,7 @@ The best*, smallest weather application ever made.
   <img src="./Assets/1024a.png" alt="WGR icon" width="256" />
 </p>
 
-A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK, with iOS in progress.
+A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK and a ~386 KB iOS app.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
@@ -14,18 +14,15 @@ A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United State
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~171%20KB-green)
 ![APK](https://img.shields.io/badge/apk-~239%20KB-green)
+![iOS](https://img.shields.io/badge/ios-~386%20KB-green)
 
 ---
 
-## Legal / Data Attribution
+## Radar Data Attribution
 
-This application is an independent open-source project and is not affiliated with, authorized, or endorsed by AccuWeather, Inc.
+Radar imagery is sourced from [AccuWeather's Sirocco service](https://sirocco.accuweather.com). This project is not affiliated with, endorsed by, or sponsored by AccuWeather, Inc. All imagery and trademarks remain the property of their respective owners.
 
-All radar and satellite imagery is provided by AccuWeather. Usage of this data is subject to AccuWeather's [Terms of Use](https://www.accuweather.com/en/legal).
-
-This tool is for personal, non-commercial use only. Users are responsible for complying with AccuWeather's data policies.
-
-Drizzle directly requests imagery from `sirocco.accuweather.com`. AccuWeather may treat unauthorized framing, scraping, or similar automated access as a violation of their terms. Keeping the project non-commercial and crediting the original data source does not override their policies.
+This is a personal, non-commercial project — please respect AccuWeather's [Terms of Use](https://www.accuweather.com/en/legal).
 
 ---
 
@@ -61,7 +58,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows and under 240 KB on Android.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows, under 240 KB on Android, and under 400 KB on iOS.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -120,18 +117,19 @@ gradle assembleRelease
 
 Output is `app/build/outputs/apk/release/app-release.apk` (~239 KB).
 
-### iOS (WIP)
+### iOS
 
 Requires a Mac with Xcode 16+.
 
 ```sh
-# Generate app icon
-pip3 install Pillow
-python3 -c "from PIL import Image; Image.open('Assets/radar.png').convert('RGBA').resize((1024,1024)).save('ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png')"
+# Copy the app icon into the asset catalog
+cp Assets/1024.png ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 
 # Open in Xcode, set your team, and run
 open ios/Drizzle.xcodeproj
 ```
+
+App size on device: ~386 KB.
 
 ---
 
@@ -147,11 +145,13 @@ Drizzle/
 ├── Assets/               # Shared across all platforms
 │   ├── radar-map.html    # All UI, map, projection, and radar logic
 │   ├── us-states.geo.json
-│   ├── radar.png         # Icon source (256×256)
+│   ├── 1024.png          # iOS app icon (1024×1024, opaque)
+│   ├── 1024a.png         # Android adaptive icon (1024×1024, transparent)
+│   ├── radar.png         # Windows icon source (256×256)
 │   └── radar.ico         # Windows icon (16/32/48/256)
 ├── android/              # Android WebView wrapper (Kotlin)
 │   └── app/src/main/java/com/drizzle/app/MainActivity.kt
-├── ios/                  # iOS WebView wrapper (Swift, WIP)
+├── ios/                  # iOS WebView wrapper (Swift)
 │   └── Drizzle/
 │       ├── RadarViewController.swift
 │       └── AppSchemeHandler.swift
@@ -162,6 +162,6 @@ Drizzle/
 
 ## License
 
-No standalone `LICENSE` file is currently included in this repository, so no separate source-code license text is granted here yet.
+MIT License — see [LICENSE](LICENSE).
 
-Any future source-code license for this repository would apply only to the code in this repo, not to the weather data or imagery accessed by the software. All trademarks and copyrighted content, including GIF imagery and the AccuWeather name and logo, remain the property of AccuWeather, Inc.
+This license applies to the source code in this repository only. Radar imagery accessed by the application is provided by AccuWeather, Inc. and is subject to their terms.
