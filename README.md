@@ -6,7 +6,7 @@ The best*, smallest weather application ever made.
   <img src="./Assets/1024a.png" alt="WGR icon" width="256" />
 </p>
 
-A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK, with iOS in progress.
+A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK and a ~267 KB iOS app.
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
@@ -14,6 +14,7 @@ A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United State
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~171%20KB-green)
 ![APK](https://img.shields.io/badge/apk-~239%20KB-green)
+![iOS](https://img.shields.io/badge/ios-~267%20KB-green)
 
 ---
 
@@ -57,7 +58,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows and under 240 KB on Android.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 175 KB on Windows, under 240 KB on Android, and under 270 KB on iOS.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -116,18 +117,19 @@ gradle assembleRelease
 
 Output is `app/build/outputs/apk/release/app-release.apk` (~239 KB).
 
-### iOS (WIP)
+### iOS
 
 Requires a Mac with Xcode 16+.
 
 ```sh
-# Generate app icon
-pip3 install Pillow
-python3 -c "from PIL import Image; Image.open('Assets/radar.png').convert('RGBA').resize((1024,1024)).save('ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png')"
+# Copy the app icon (required before first build — file is gitignored)
+cp Assets/1024.png ios/Drizzle/AppIcon.png
 
 # Open in Xcode, set your team, and run
 open ios/Drizzle.xcodeproj
 ```
+
+App size on device: ~267 KB.
 
 ---
 
@@ -143,7 +145,9 @@ Drizzle/
 ├── Assets/               # Shared across all platforms
 │   ├── radar-map.html    # All UI, map, projection, and radar logic
 │   ├── us-states.geo.json
-│   ├── radar.png         # Icon source (256×256)
+│   ├── 1024.png          # iOS app icon (1024×1024, opaque)
+│   ├── 1024a.png         # Android adaptive icon (1024×1024, transparent)
+│   ├── radar.png         # Windows icon source (256×256)
 │   └── radar.ico         # Windows icon (16/32/48/256)
 ├── android/              # Android WebView wrapper (Kotlin)
 │   └── app/src/main/java/com/drizzle/app/MainActivity.kt
