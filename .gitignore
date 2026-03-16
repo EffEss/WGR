@@ -24,11 +24,19 @@ radar/
 *.zip
 *.7z
 
-# Internal docs
+# macOS
+.DS_Store
+
+# Design files
+Assets/*.psd
+
+# Internal docs / one-off scripts
 accuweather.md
 *.calibration
 Assets/geojson-changelog.md
 Assets/us-states-fresh.json
+Assets/radar84kb.ico
+Assets/radar6kb.png
 fix_geojson.py
 
 # Android
@@ -46,6 +54,9 @@ ios/Drizzle.xcodeproj/xcuserdata/
 ios/Drizzle.xcodeproj/project.xcworkspace/xcuserdata/
 ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 *.ipa
+
+# iOS app icon (generated from 1024.png, see copilot-instructions.md)
+ios/Drizzle/AppIcon.png
 
 # README screenshots (cosmetic only, not needed for builds)
 # drizzle_usa.png, drizzle_state.png, weather.png kept tracked for README rendering

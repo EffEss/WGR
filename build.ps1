@@ -69,13 +69,17 @@ if (Test-Path "$root\Assets\radar.ico") {
 }
 
 # Compile + link
+# /MT = static VC runtime (no MSVCP140/VCRUNTIME140 dependency)
+# /NODEFAULTLIB:libucrt.lib + ucrt.lib = dynamic ucrt (ships with Windows 10+)
+# This avoids the ~110 KB static ucrt bloat from MSVC 19.50+
 $srcFiles = @("$root\main.cpp")
 if ($resFile) { $srcFiles += $resFile }
-cl /nologo /O1 /GL /std:c++17 /EHsc `
+cl /nologo /O1 /GL /std:c++17 /EHsc /MT `
    /I"$wv2Inc" `
    /Fe"$out\Drizzle.exe" `
    @srcFiles `
    /link /LTCG /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS `
+   /NODEFAULTLIB:libucrt.lib ucrt.lib `
    /MANIFEST:EMBED "/MANIFESTINPUT:$root\app.manifest" `
    "$wv2Lib" user32.lib ole32.lib oleaut32.lib gdi32.lib shell32.lib shlwapi.lib advapi32.lib cabinet.lib
 
