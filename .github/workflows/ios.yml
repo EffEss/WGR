@@ -1,7 +1,7 @@
 name: iOS
 on:
   push:
-    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/radar.png']
+    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/1024.png']
   workflow_dispatch:
 
 jobs:
@@ -10,15 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Generate 1024x1024 app icon from radar.png
-      - name: Generate app icon
-        run: |
-          pip3 install --quiet --break-system-packages Pillow
-          python3 -c "
-          from PIL import Image
-          src = Image.open('Assets/radar.png').convert('RGBA')
-          src.resize((1024,1024), Image.LANCZOS).save('ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png')
-          "
+      # Copy pre-made 1024x1024 icon into the asset catalog
+      - name: Copy app icon
+        run: cp Assets/1024.png ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 
       - name: Build
         run: |
