@@ -119,10 +119,10 @@ Output is `app/build/outputs/apk/release/app-release.apk` (~239 KB).
 
 ### iOS
 
-Requires a Mac with Xcode 16+.
+Built automatically via GitHub Actions. To build locally, requires a Mac with Xcode 16+.
 
 ```sh
-# Copy the app icon (required before first build — file is gitignored)
+# Copy the app icon (required before first build, file is gitignored)
 cp Assets/1024.png ios/Drizzle/AppIcon.png
 
 # Open in Xcode, set your team, and run
