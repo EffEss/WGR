@@ -3,7 +3,7 @@
 The best*, smallest weather application ever made.
 
 <p align="center">
-  <img src="./weather.png" alt="WGR icon" width="128" />
+  <img src="./Assets/1024a.png" alt="WGR icon" width="128" />
 </p>
 
 A single ~171 KB `.exe` that shows live NEXRAD radar for the entire United States — national, regional, and state-level — with no installer, no frameworks, no Electron, and no apologies. Also available as a ~239 KB Android APK, with iOS in progress.
