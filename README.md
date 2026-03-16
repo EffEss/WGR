@@ -122,8 +122,8 @@ Output is `app/build/outputs/apk/release/app-release.apk` (~239 KB).
 Requires a Mac with Xcode 16+.
 
 ```sh
-# Copy the app icon into the asset catalog
-cp Assets/1024.png ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+# Copy the app icon (required before first build)
+cp Assets/1024.png ios/Drizzle/AppIcon.png
 
 # Open in Xcode, set your team, and run
 open ios/Drizzle.xcodeproj
