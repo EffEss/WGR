@@ -11,6 +11,7 @@ Also available as a ~219 KB Android APK and a ~275 KB iOS app.
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
 ![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple)
+![watchOS](https://img.shields.io/badge/watchOS-26%2B-000000?logo=apple)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~132%20KB-green)
 ![APK](https://img.shields.io/badge/apk-~219%20KB-green)
@@ -156,6 +157,27 @@ App size on device: ~275 KB.
 
 ---
 
+### Apple Watch (iDrizzleWatch)
+
+A standalone watchOS app in `ios/iDrizzleWatch/` mirrors the same radar
+functionality natively in SwiftUI (watchOS has no `WKWebView`, so the radar
+GIFs are downloaded from the same AccuWeather endpoint and animated with
+ImageIO). Pick a region, refresh, and clear the cache right from the wrist.
+Targets watchOS 26+ (Apple Watch Ultra 3 and Series 11).
+
+```sh
+# Copy the watch app icon (required before first build, file is gitignored)
+cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
+
+# Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
+# Open in Xcode and run iDrizzleWatch on an Apple Watch destination.
+open ios/iDrizzleWatch.xcodeproj
+```
+
+> `setup-ios-local.sh` copies both app icons and opens both projects for you.
+
+---
+
 ## Project Structure
 
 ```
@@ -175,10 +197,14 @@ Drizzle/
 ├── android/              # Android WebView wrapper (Kotlin)
 │   └── app/src/main/java/com/drizzle/app/MainActivity.kt
 ├── ios/                  # iOS WebView wrapper (Swift)
-│   └── iDrizzle/
-│       ├── RadarViewController.swift
-│       └── AppSchemeHandler.swift
-└── .github/workflows/    # CI: builds APK + iOS archive on push
+│   ├── iDrizzle/
+│   │   ├── RadarViewController.swift
+│   │   └── AppSchemeHandler.swift
+│   └── iDrizzleWatch/        # watchOS app (native SwiftUI)
+│       ├── RadarService.swift
+│       ├── GIFImage.swift
+│       └── ContentView.swift
+└── .github/workflows/    # CI: builds APK + iOS/watchOS archives on push
 ```
 
 ---
