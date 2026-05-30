@@ -26,7 +26,7 @@
 		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
 		A2000012 /* us-states.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "us-states.geo.json"; path = "../Assets/us-states.geo.json"; sourceTree = SOURCE_ROOT; };
 		A2000010 /* Drizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Drizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A2000020 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Local.xcconfig; path = "../Local.xcconfig"; sourceTree = SOURCE_ROOT; };
+		A2000020 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Local.xcconfig; path = Local.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
