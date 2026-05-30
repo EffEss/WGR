@@ -55,13 +55,13 @@ android/app/*.keystore
 # iOS
 ios/build/
 ios/DerivedData/
-ios/Drizzle.xcodeproj/xcuserdata/
-ios/Drizzle.xcodeproj/project.xcworkspace/xcuserdata/
-ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+ios/iDrizzle.xcodeproj/xcuserdata/
+ios/iDrizzle.xcodeproj/project.xcworkspace/xcuserdata/
+ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 *.ipa
 
-# iOS app icon (generated from 1024.png, see copilot-instructions.md)
-ios/Drizzle/AppIcon.png
+# iOS app icon (generated from iDrizzle.png, see copilot-instructions.md)
+ios/iDrizzle/AppIcon.png
 
 # iOS local signing config (holds personal Apple Team ID, see Local.xcconfig.template)
 ios/Local.xcconfig

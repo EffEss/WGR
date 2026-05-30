@@ -43,12 +43,12 @@
 		A4000001 = {
 			isa = PBXGroup;
 			children = (
-				A4000002 /* Drizzle */,
+				A4000002 /* iDrizzle */,
 				A4000003 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A4000002 /* Drizzle */ = {
+		A4000002 /* iDrizzle */ = {
 			isa = PBXGroup;
 			children = (
 				A2000001 /* AppDelegate.swift */,
@@ -61,7 +61,7 @@
 				A2000012 /* us-states.geo.json */,
 				A2000020 /* Local.xcconfig */,
 			);
-			path = Drizzle;
+			path = iDrizzle;
 			sourceTree = "<group>";
 		};
 		A4000003 /* Products */ = {
@@ -75,9 +75,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A5000001 /* Drizzle */ = {
+		A5000001 /* iDrizzle */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A7000001 /* Build configuration list for PBXNativeTarget "Drizzle" */;
+			buildConfigurationList = A7000001 /* Build configuration list for PBXNativeTarget "iDrizzle" */;
 			buildPhases = (
 				A3000002 /* Sources */,
 				A3000001 /* Frameworks */,
@@ -87,7 +87,7 @@
 			);
 			dependencies = (
 			);
-			name = Drizzle;
+			name = iDrizzle;
 			productName = iDrizzle;
 			productReference = A2000010 /* iDrizzle.app */;
 			productType = "com.apple.product-type.application";
@@ -102,7 +102,7 @@
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 2630;
 			};
-			buildConfigurationList = A7000002 /* Build configuration list for PBXProject "Drizzle" */;
+			buildConfigurationList = A7000002 /* Build configuration list for PBXProject "iDrizzle" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -115,7 +115,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A5000001 /* Drizzle */,
+				A5000001 /* iDrizzle */,
 			);
 		};
 /* End PBXProject section */
@@ -248,7 +248,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
-				INFOPLIST_FILE = Drizzle/Info.plist;
+				INFOPLIST_FILE = iDrizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -269,7 +269,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
-				INFOPLIST_FILE = Drizzle/Info.plist;
+				INFOPLIST_FILE = iDrizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -285,7 +285,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A7000001 /* Build configuration list for PBXNativeTarget "Drizzle" */ = {
+		A7000001 /* Build configuration list for PBXNativeTarget "iDrizzle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A8000003 /* Debug */,
@@ -294,7 +294,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A7000002 /* Build configuration list for PBXProject "Drizzle" */ = {
+		A7000002 /* Build configuration list for PBXProject "iDrizzle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A8000001 /* Debug */,

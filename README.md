@@ -139,14 +139,14 @@ Built automatically via GitHub Actions. The iOS-family app is branded as **iDriz
 
 ```sh
 # Copy the iOS app icon (required before first build, file is gitignored)
-cp Assets/iDrizzle.png ios/Drizzle/AppIcon.png
+cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
 
 # Provide your Apple Developer Team ID for local signing (file is gitignored)
 cp ios/Local.xcconfig.template ios/Local.xcconfig
 # then edit ios/Local.xcconfig and set DRIZZLE_DEVELOPMENT_TEAM = <your 10-char Team ID>
 
 # Open in Xcode and run iDrizzle
-open ios/Drizzle.xcodeproj
+open ios/iDrizzle.xcodeproj
 ```
 
 > Signing is sourced from `ios/Local.xcconfig`, which is gitignored so no personal
@@ -175,7 +175,7 @@ Drizzle/
 ├── android/              # Android WebView wrapper (Kotlin)
 │   └── app/src/main/java/com/drizzle/app/MainActivity.kt
 ├── ios/                  # iOS WebView wrapper (Swift)
-│   └── Drizzle/
+│   └── iDrizzle/
 │       ├── RadarViewController.swift
 │       └── AppSchemeHandler.swift
 └── .github/workflows/    # CI: builds APK + iOS archive on push

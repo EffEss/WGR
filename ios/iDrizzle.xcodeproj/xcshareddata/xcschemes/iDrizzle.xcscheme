@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "2630"
-   version = "1.7">
+   version = "1.7"
+   name = "iDrizzle">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -15,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A5000001"
-               BuildableName = "Drizzle.app"
-               BlueprintName = "Drizzle"
-               ReferencedContainer = "container:Drizzle.xcodeproj">
+               BuildableName = "iDrizzle.app"
+               BlueprintName = "iDrizzle"
+               ReferencedContainer = "container:iDrizzle.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A5000001"
-            BuildableName = "Drizzle.app"
-            BlueprintName = "Drizzle"
-            ReferencedContainer = "container:Drizzle.xcodeproj">
+            BuildableName = "iDrizzle.app"
+            BlueprintName = "iDrizzle"
+            ReferencedContainer = "container:iDrizzle.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
