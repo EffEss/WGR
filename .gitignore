@@ -58,5 +58,8 @@ ios/Drizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 # iOS app icon (generated from 1024.png, see copilot-instructions.md)
 ios/Drizzle/AppIcon.png
 
+# iOS local signing config (holds personal Apple Team ID, see Local.xcconfig.template)
+ios/Local.xcconfig
+
 # README screenshots (cosmetic only, not needed for builds)
 # drizzle_usa.png, drizzle_state.png, weather.png kept tracked for README rendering

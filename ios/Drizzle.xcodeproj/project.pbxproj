@@ -26,6 +26,7 @@
 		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
 		A2000012 /* us-states.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "us-states.geo.json"; path = "../Assets/us-states.geo.json"; sourceTree = SOURCE_ROOT; };
 		A2000010 /* Drizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Drizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000020 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Local.xcconfig; path = "../Local.xcconfig"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +59,7 @@
 				A2000007 /* Info.plist */,
 				A2000011 /* radar-map.html */,
 				A2000012 /* us-states.geo.json */,
+				A2000020 /* Local.xcconfig */,
 			);
 			path = Drizzle;
 			sourceTree = "<group>";
@@ -240,11 +242,12 @@
 		};
 		A8000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = $(DRIZZLE_DEVELOPMENT_TEAM);
+				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
 				INFOPLIST_FILE = Drizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -260,11 +263,12 @@
 		};
 		A8000004 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = $(DRIZZLE_DEVELOPMENT_TEAM);
+				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
 				INFOPLIST_FILE = Drizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (

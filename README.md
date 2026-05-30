@@ -125,9 +125,16 @@ Built automatically via GitHub Actions. To build locally, requires a Mac with Xc
 # Copy the app icon (required before first build, file is gitignored)
 cp Assets/1024.png ios/Drizzle/AppIcon.png
 
-# Open in Xcode, set your team, and run
+# Provide your Apple Developer Team ID for local signing (file is gitignored)
+cp ios/Local.xcconfig.template ios/Local.xcconfig
+# then edit ios/Local.xcconfig and set DRIZZLE_DEVELOPMENT_TEAM = <your 10-char Team ID>
+
+# Open in Xcode and run
 open ios/Drizzle.xcodeproj
 ```
+
+> Signing is sourced from `ios/Local.xcconfig`, which is gitignored so no personal
+> Apple Team ID is committed. Leave it empty for simulator builds or CI.
 
 App size on device: ~275 KB.
 
