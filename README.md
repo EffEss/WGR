@@ -106,16 +106,32 @@ Output is a single `Drizzle.exe` (~132 KB).
 
 ### Android
 
-Built automatically via GitHub Actions. To build locally:
+Built automatically via GitHub Actions. For Play Store release, use a signed **AAB**.
+
+Local setup for store signing:
 
 ```sh
 cd android
+cp keystore.properties.template keystore.properties
+# edit keystore.properties with your real keystore path + passwords
+
 # Sync shared assets from Assets/
 powershell ./sync-assets.ps1
-gradle assembleRelease
+
+# Build side-load APK + Play AAB
+gradle assembleRelease bundleRelease
 ```
 
-Output is `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~219 KB).
+Outputs:
+- `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~219 KB)
+- `app/build/outputs/bundle/release/Drizzle_v{version}.aab` (upload this to Play Console)
+
+Play Console requirements (free app still needs these):
+- App signing key (Play App Signing)
+- App content forms (Data safety, content rating, ads, app access)
+- Privacy policy URL
+- Store listing assets (icon, screenshots, feature graphic)
+- **Short promo/demo video captured from your phone while using the app** (recommended for listing quality)
 
 ### iOS
 

@@ -38,6 +38,7 @@ Assets/us-states-fresh.json
 Assets/radar84kb.ico
 Assets/radar6kb.png
 fix_geojson.py
+setup-ios-local.sh
 
 # Android
 android/.gradle/
@@ -45,7 +46,11 @@ android/app/build/
 android/build/
 android/app/src/main/assets/
 android/app/src/main/res/mipmap-*/ic_launcher_foreground.png
+android/keystore.properties
+android/app/*.jks
+android/app/*.keystore
 *.apk
+*.aab
 
 # iOS
 ios/build/

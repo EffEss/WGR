@@ -1,7 +1,35 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+val keystoreProperties = Properties().apply {
+    val propertiesFile = rootProject.file("keystore.properties")
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use { load(it) }
+    }
+}
+
+fun readSecret(name: String): String? {
+    val envValue = System.getenv(name)
+    if (!envValue.isNullOrBlank()) return envValue
+    val propValue = keystoreProperties.getProperty(name)
+    return if (propValue.isNullOrBlank()) null else propValue
+}
+
+val releaseKeystorePath = readSecret("ANDROID_KEYSTORE_PATH")
+val releaseKeystorePassword = readSecret("ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = readSecret("ANDROID_KEY_ALIAS")
+val releaseKeyPassword = readSecret("ANDROID_KEY_PASSWORD")
+
+val hasReleaseSigning =
+    !releaseKeystorePath.isNullOrBlank() &&
+    rootProject.file(releaseKeystorePath).exists() &&
+    !releaseKeystorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
 
 android {
     namespace = "com.drizzle.app"
@@ -15,13 +43,28 @@ android {
         versionName = "1.6.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = rootProject.file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-            // Sign with debug key for side-loading; replace with real key for Play Store
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                // Fallback for local side-loading without Play signing secrets
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
