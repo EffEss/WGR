@@ -14,6 +14,13 @@ jobs:
       - name: Copy app icon
         run: cp Assets/1024.png ios/Drizzle/AppIcon.png
 
+      # Ensure gitignored local signing config exists for Xcode build settings
+      - name: Prepare Local.xcconfig for CI
+        run: |
+          if [ ! -f ios/Local.xcconfig ]; then
+            cp ios/Local.xcconfig.template ios/Local.xcconfig
+          fi
+
       - name: Build
         run: |
           xcodebuild -project ios/Drizzle.xcodeproj \
@@ -21,6 +28,7 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -archivePath build/Drizzle.xcarchive \
+            DRIZZLE_DEVELOPMENT_TEAM="" \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_ALLOWED=NO \
             archive
