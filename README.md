@@ -133,19 +133,19 @@ Play Console requirements (free app still needs these):
 - Store listing assets (icon, screenshots, feature graphic)
 - **Short promo/demo video captured from your phone while using the app** (recommended for listing quality)
 
-### iOS
+### iOS / iPadOS / macOS (iDrizzle)
 
-Built automatically via GitHub Actions. To build locally, requires a Mac with Xcode 16+.
+Built automatically via GitHub Actions. The iOS-family app is branded as **iDrizzle** (Android remains **Drizzle**). To build locally, requires a Mac with Xcode 16+.
 
 ```sh
-# Copy the app icon (required before first build, file is gitignored)
-cp Assets/1024.png ios/Drizzle/AppIcon.png
+# Copy the iOS app icon (required before first build, file is gitignored)
+cp Assets/iDrizzle.png ios/Drizzle/AppIcon.png
 
 # Provide your Apple Developer Team ID for local signing (file is gitignored)
 cp ios/Local.xcconfig.template ios/Local.xcconfig
 # then edit ios/Local.xcconfig and set DRIZZLE_DEVELOPMENT_TEAM = <your 10-char Team ID>
 
-# Open in Xcode and run
+# Open in Xcode and run iDrizzle
 open ios/Drizzle.xcodeproj
 ```
 
@@ -168,7 +168,7 @@ Drizzle/
 ├── Assets/               # Shared across all platforms
 │   ├── radar-map.html    # All UI, map, projection, and radar logic
 │   ├── us-states.geo.json
-│   ├── 1024.png          # iOS app icon (1024×1024, opaque)
+│   ├── iDrizzle.png      # iOS app icon (1024×1024, opaque)
 │   ├── 1024a.png         # Android adaptive icon (1024×1024, transparent)
 │   ├── radar*.png        # Windows icon sources (256/48/32/16, pre-optimized)
 │   └── radar.ico         # Windows icon (16/32/48/256, built by build_ico.py)

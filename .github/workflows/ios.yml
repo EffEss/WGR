@@ -1,7 +1,7 @@
 name: iOS
 on:
   push:
-    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/1024.png']
+    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/iDrizzle.png']
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
 
       # Copy icon as a loose bundle resource (avoids .car duplication)
       - name: Copy app icon
-        run: cp Assets/1024.png ios/Drizzle/AppIcon.png
+        run: cp Assets/iDrizzle.png ios/Drizzle/AppIcon.png
 
       # Ensure gitignored local signing config exists for Xcode build settings
       - name: Prepare Local.xcconfig for CI
