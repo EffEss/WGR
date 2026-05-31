@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		17AEEAE22FCC09F900E7C3AF /* iDrizzleWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* AppDelegate.swift */; };
 		A1000002 /* RadarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* RadarViewController.swift */; };
 		A1000003 /* AppSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppSchemeHandler.swift */; };
@@ -17,29 +16,7 @@
 		A1000008 /* us-states.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000012 /* us-states.geo.json */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		17AEEAE02FCC09F900E7C3AF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A6000001 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 17AEEAD72FCC09F800E7C3AF;
-			remoteInfo = "iDrizzleWatch Watch App";
-		};
-/* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		17AEEAE62FCC09F900E7C3AF /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				17AEEAE22FCC09F900E7C3AF /* iDrizzleWatch Watch App.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iDrizzleWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -151,12 +128,10 @@
 				A3000002 /* Sources */,
 				A3000001 /* Frameworks */,
 				A3000003 /* Resources */,
-				17AEEAE62FCC09F900E7C3AF /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				17AEEAE12FCC09F900E7C3AF /* PBXTargetDependency */,
 			);
 			name = iDrizzle;
 			productName = iDrizzle;
@@ -238,13 +213,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		17AEEAE12FCC09F900E7C3AF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */;
-			targetProxy = 17AEEAE02FCC09F900E7C3AF /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		17AEEAE42FCC09F900E7C3AF /* Debug */ = {
