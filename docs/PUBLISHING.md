@@ -56,6 +56,11 @@ App Store Connect → *My Apps → +*:
 - **iDrizzle** bound to `com.idrizzle.app` (platforms: iOS, iPadOS, macOS as desired)
 - **iDrizzleWatch** bound to `com.idrizzle.watchapp` (watchOS)
 
+> When creating the **iDrizzleWatch** record, choose **iOS** as the platform.
+> App Store Connect has no separate "watchOS" platform option for a *new app* —
+> a watch-only app is registered under the iOS platform and Apple infers it is
+> watchOS from the uploaded build's `WKApplication`/`WKWatchOnly` flags.
+
 Leave the *Apple Watch* screenshot tab on the iOS record empty — the watch app is
 shipped through its own record, not embedded.
 
