@@ -107,40 +107,45 @@ jobs:
 
       - name: Upload iDrizzleWatch to App Store Connect
         run: |
-          # Standalone watchOS archives trip Xcode's IDEDistribution
-          # ("Unknown Distribution Error" / method not offering app-store-connect),
-          # so package the already distribution-signed .app into an IPA and upload
-          # it directly with altool instead of using -exportArchive.
+          # Two-stage approach for the standalone watch app:
+          #
+          # 1. xcodebuild -exportArchive with destination=export re-signs the
+          #    app for App Store *distribution* and writes an IPA to disk. We
+          #    use export (not upload) because Xcode's IDEDistribution upload
+          #    pipeline fails for watch-only archives ("method not offering
+          #    app-store-connect"). Packaging the archive .app directly instead
+          #    keeps its development signature and is rejected by App Store
+          #    Connect with 90161 "Invalid Provisioning Profile ... A
+          #    distribution provisioning profile should be used".
+          # 2. altool uploads that distribution-signed IPA. --upload-package
+          #    with explicit --type ios + metadata avoids altool's platform
+          #    inference, which cannot classify a watch-only bundle
+          #    (CFBundleSupportedPlatforms=[WatchOS]).
+          rm -rf build/iDrizzleWatch-export
+          xcodebuild -exportArchive \
+            -archivePath build/iDrizzleWatch.xcarchive \
+            -exportOptionsPlist ios/ExportOptionsWatch.plist \
+            -exportPath build/iDrizzleWatch-export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+
+          IPA_PATH=$(find build/iDrizzleWatch-export -name '*.ipa' | head -n 1)
+          if [ -z "${IPA_PATH}" ]; then
+            echo "No IPA produced by -exportArchive:"
+            ls -R build/iDrizzleWatch-export
+            exit 1
+          fi
+          echo "Distribution-signed IPA: ${IPA_PATH}"
+
+          # Read metadata from the archived (processed) app plist; altool
+          # --upload-package requires it to be supplied explicitly.
           APP_PATH="build/iDrizzleWatch.xcarchive/Products/Applications/iDrizzleWatch.app"
-
-          # altool derives the upload platform from keys Xcode injects into the
-          # processed Info.plist. Dump them so any "cannot determine platform"
-          # failure shows exactly what is present in the built app.
-          echo "=== Built app Info.plist platform keys ==="
-          for KEY in DTPlatformName DTSDKName MinimumOSVersion UIDeviceFamily \
-                     CFBundleSupportedPlatforms WKApplication WKWatchOnly; do
-            VALUE=$(/usr/libexec/PlistBuddy -c "Print :${KEY}" "${APP_PATH}/Info.plist" 2>/dev/null || echo "<missing>")
-            echo "${KEY} = ${VALUE}"
-          done
-          echo "=========================================="
-
-          rm -rf build/iDrizzleWatch-ipa
-          mkdir -p build/iDrizzleWatch-ipa/Payload
-          cp -R "${APP_PATH}" build/iDrizzleWatch-ipa/Payload/
-          (cd build/iDrizzleWatch-ipa && /usr/bin/zip -r -y ../iDrizzleWatch.ipa Payload >/dev/null)
-
-          # altool --upload-app infers the platform from the bundle, and a
-          # watch-only bundle (CFBundleSupportedPlatforms=[WatchOS]) is not one
-          # of the inferable values {macos|ios|appletvos|visionos}, so it fails
-          # with "Cannot determine the 'platform'". --upload-package takes the
-          # platform and metadata explicitly. The standalone watch app lives
-          # under the iOS platform in App Store Connect, so --type ios. (Use
-          # --type, not --platform: --type is the flag this runner's altool
-          # actually accepts, as proven by the earlier --upload-app --type ios run.)
           BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${APP_PATH}/Info.plist")
           BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${APP_PATH}/Info.plist")
           SHORT_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PATH}/Info.plist")
-          xcrun altool --upload-package build/iDrizzleWatch.ipa \
+          xcrun altool --upload-package "${IPA_PATH}" \
             --type ios \
             --apple-id "${WATCH_APPLE_ID}" \
             --bundle-id "${BUNDLE_ID}" \
