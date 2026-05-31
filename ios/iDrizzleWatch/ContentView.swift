@@ -311,11 +311,37 @@ struct ContentView: View {
 		service.fetchRadarGif(region: key) { result in
 			DispatchQueue.main.async {
 				guard key == currentLoadKey() else { return }
+				switch result {
+				case .success(let url):
+					isLoading = false
+					radarURL = url
+					status = "\(label) · \(timeStamp())"
+					updateCacheText()
+				case .failure:
+					// Mirror HTML loadStateRadar: if a state's own GIF is
+					// unavailable, fall back to its containing region GIF.
+					if case .state(let code) = selection {
+						loadStateFallback(forState: code, label: label)
+					} else {
+						isLoading = false
+						status = "Radar unavailable"
+					}
+				}
+			}
+		}
+	}
+
+	private func loadStateFallback(forState code: String, label: String) {
+		let region = RadarService.fallbackRegion(forState: code)
+		let regionName = RadarService.displayName(for: region)
+		service.fetchRadarGif(region: region) { result in
+			DispatchQueue.main.async {
+				guard case .state(code) = selection else { return }
 				isLoading = false
 				switch result {
 				case .success(let url):
 					radarURL = url
-					status = "\(label) · \(timeStamp())"
+					status = "\(label) → \(regionName) · \(timeStamp())"
 					updateCacheText()
 				case .failure:
 					status = "Radar unavailable"

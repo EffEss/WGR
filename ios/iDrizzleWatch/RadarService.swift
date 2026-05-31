@@ -111,11 +111,18 @@ final class RadarService {
 	}
 
 	/// Returns the key that should actually be downloaded for a chosen state.
-	/// Mirrors HTML handleStateClick order: direct/sub-region -> redirect -> fallback region.
+	/// Mirrors HTML handleStateClick: redirect states load the redirect target's
+	/// state GIF, every other state loads its OWN GIF (inmasir<abbrev>_.gif).
+	/// Region fallback only happens if that download fails (see fallbackRegion).
 	static func resolvedKey(forState state: String) -> String {
-		if regionFiles[state] != nil { return state }
 		if let redir = stateRedirect[state] { return redir }
-		return stateFallbackRegion[state] ?? navigationRegion(forState: state) ?? "USA"
+		return state
+	}
+
+	/// Region GIF to load if a state's own GIF download fails.
+	/// Mirrors HTML getRegionFallback (defaults to USA when unmapped).
+	static func fallbackRegion(forState state: String) -> String {
+		stateFallbackRegion[state] ?? "USA"
 	}
 
 	static func resolvedLabel(forState state: String) -> String {
