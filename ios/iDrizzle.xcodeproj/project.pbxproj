@@ -12,7 +12,6 @@
 		A1000003 /* AppSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppSchemeHandler.swift */; };
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
 		A1000006 /* radar-map.html in Resources */ = {isa = PBXBuildFile; fileRef = A2000011 /* radar-map.html */; };
-		A1000007 /* AppIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A2000008 /* AppIcon.png */; };
 		A1000008 /* us-states.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000012 /* us-states.geo.json */; };
 /* End PBXBuildFile section */
 
@@ -24,7 +23,6 @@
 		A2000002 /* RadarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadarViewController.swift; sourceTree = "<group>"; };
 		A2000003 /* AppSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemeHandler.swift; sourceTree = "<group>"; };
 		A2000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A2000008 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
 		A2000010 /* iDrizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iDrizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
 		A2000012 /* us-states.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "us-states.geo.json"; path = "../Assets/us-states.geo.json"; sourceTree = SOURCE_ROOT; };
@@ -79,7 +77,6 @@
 				A2000002 /* RadarViewController.swift */,
 				A2000003 /* AppSchemeHandler.swift */,
 				A2000004 /* Assets.xcassets */,
-				A2000008 /* AppIcon.png */,
 				A2000011 /* radar-map.html */,
 				A2000012 /* us-states.geo.json */,
 				A2000020 /* Local.xcconfig */,
@@ -187,7 +184,6 @@
 				A1000004 /* Assets.xcassets in Resources */,
 				A1000006 /* radar-map.html in Resources */,
 				A1000008 /* us-states.geo.json in Resources */,
-				A1000007 /* AppIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,7 +409,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
@@ -435,7 +431,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";

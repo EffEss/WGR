@@ -10,14 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Copy icon as a loose bundle resource (avoids .car duplication)
-      - name: Copy app icon
-        run: |
-          cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
-          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/AppIcon.png"
-          cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-
       # Ensure gitignored local signing config exists for Xcode build settings
       - name: Prepare Local.xcconfig for CI
         run: |

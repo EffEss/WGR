@@ -59,12 +59,6 @@ ios/iDrizzle.xcodeproj/project.xcworkspace/xcuserdata/
 ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 *.ipa
 
-# iOS app icon (generated from iDrizzle.png, see copilot-instructions.md)
-ios/iDrizzle/AppIcon.png
-ios/iDrizzleWatch Watch App/AppIcon.png
-ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-
 # iOS local signing config (holds personal Apple Team ID, see Local.xcconfig.template)
 ios/Local.xcconfig
 

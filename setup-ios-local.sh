@@ -2,31 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ICON_SRC="$ROOT_DIR/Assets/iDrizzle.png"
-IOS_APP_DIR="iDrizzle"
-WATCH_APP_DIR="iDrizzleWatch Watch App"
-ICON_DST="$ROOT_DIR/ios/$IOS_APP_DIR/AppIcon.png"
-WATCH_ICON_DST="$ROOT_DIR/ios/$WATCH_APP_DIR/AppIcon.png"
-ICON_ASSET_DST="$ROOT_DIR/ios/$IOS_APP_DIR/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-WATCH_ICON_ASSET_DST="$ROOT_DIR/ios/$WATCH_APP_DIR/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 XCCONFIG_TEMPLATE="$ROOT_DIR/ios/Local.xcconfig.template"
 XCCONFIG_LOCAL="$ROOT_DIR/ios/Local.xcconfig"
 PROJECT_PATH="$ROOT_DIR/ios/iDrizzle.xcodeproj"
-
-if [[ ! -f "$ICON_SRC" ]]; then
-  echo "Missing iOS icon source: $ICON_SRC"
-  exit 1
-fi
-
-cp "$ICON_SRC" "$ICON_DST"
-cp "$ICON_SRC" "$ICON_ASSET_DST"
-echo "Copied app icon -> ios/$IOS_APP_DIR/AppIcon.png"
-
-if [[ -d "$ROOT_DIR/ios/$WATCH_APP_DIR" ]]; then
-  cp "$ICON_SRC" "$WATCH_ICON_DST"
-  cp "$ICON_SRC" "$WATCH_ICON_ASSET_DST"
-  echo "Copied app icon -> ios/$WATCH_APP_DIR/AppIcon.png"
-fi
 
 if [[ ! -f "$XCCONFIG_LOCAL" ]]; then
   cp "$XCCONFIG_TEMPLATE" "$XCCONFIG_LOCAL"

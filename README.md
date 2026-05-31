@@ -146,10 +146,6 @@ Play Console requirements (free app still needs these):
 Built automatically via GitHub Actions. The iOS-family app is branded as **iDrizzle** (Android remains **Drizzle**). To build locally, requires a Mac with Xcode 26+ (App Store requires the iOS 26 SDK).
 
 ```sh
-# Copy the iOS app icon (required before first build, files are gitignored)
-cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
-cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-
 # Provide your Apple Developer Team ID for local signing (file is gitignored)
 cp ios/Local.xcconfig.template ios/Local.xcconfig
 # then edit ios/Local.xcconfig and set DRIZZLE_DEVELOPMENT_TEAM = <your 10-char Team ID>
@@ -174,16 +170,12 @@ project as iOS (`ios/iDrizzle.xcodeproj`). It remains watch-only
 AccuWeather endpoint and animated with ImageIO).
 
 ```sh
-# Copy the watch app icon (required before first build, files are gitignored)
-cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/AppIcon.png"
-cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-
 # Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
 # Open the single project and run the watch target on an Apple Watch destination.
 open ios/iDrizzle.xcodeproj
 ```
 
-> `setup-ios-local.sh` copies both app icons and opens the single project.
+> `setup-ios-local.sh` prepares local signing config and opens the single project.
 
 App size on device: ~699 KB. The watch build is larger than the iPhone app
 because watchOS has no system `WKWebView`, so it bundles a native SwiftUI radar

@@ -29,13 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy app icons
-        run: |
-          cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
-          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/AppIcon.png"
-          cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-
       # The iDrizzle project references ios/Local.xcconfig as a base config for
       # every target (it supplies DRIZZLE_DEVELOPMENT_TEAM). It is gitignored, so
       # recreate it on the runner with the Team ID from secrets.
