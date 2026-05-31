@@ -17,6 +17,12 @@ To display radar imagery, the app requests public radar image content from AccuW
 
 As with any internet request, network infrastructure (for example, your ISP, Apple, or AccuWeather) may process technical connection data such as IP address, user agent, and request metadata to deliver content and operate their services.
 
+## Local Cache Storage
+
+The app stores a local on-device cache of radar files/URLs associated with regions or states you open, to speed up loading and reduce repeated downloads.
+
+This cache stays on your device and is not sent to us. You can clear it at any time from within the app using the cache-clear action.
+
 ## Device Permissions
 
 The app does not request access to sensitive device data such as Contacts, Photos, Microphone, or Location for core functionality.
