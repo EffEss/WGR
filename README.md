@@ -204,10 +204,14 @@ key.
 
 ### One-time setup
 
-1. **Register the bundle IDs** in App Store Connect → *Certificates, Identifiers & Profiles → Identifiers*:
+`iDrizzle` (iOS/iPadOS) and `iDrizzleWatch` (watchOS) are **two independent,
+standalone apps** — the watch app is not embedded in the iOS app — so each gets
+its **own App Store Connect app record** and its own listing:
+
+1. **Register the bundle IDs** in App Store Connect → *Certificates, Identifiers & Profiles → Identifiers* (click **+ → App IDs → App**, Explicit):
    - `com.idrizzle.app` (iOS app)
-   - `com.idrizzle.watchapp` (watchOS app)
-2. **Create the app records** in App Store Connect (*My Apps → +*) for the iOS app and the standalone watch app.
+   - `com.idrizzle.watchapp` (standalone watchOS app)
+2. **Create two app records** in App Store Connect (*My Apps → +*): one named **iDrizzle** bound to `com.idrizzle.app`, and a second named **iDrizzleWatch** bound to `com.idrizzle.watchapp`. Leave the *Apple Watch* screenshot tab on the iOS record empty — the watch app is shipped through its own record, not embedded.
 3. **Create an App Store Connect API key** (*Users and Access → Integrations → App Store Connect API*) with the **App Manager** role and download the `.p8` (you can only download it once).
 
 ### Required GitHub repository secrets
