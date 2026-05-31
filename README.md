@@ -59,7 +59,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 135 KB on Windows, under 220 KB on Android, and under 275 KB on iOS.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 140 KB on Windows, under 215 KB on Android, under 280 KB on iOS, and ~700 KB on Apple Watch.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -103,7 +103,7 @@ cmake -B out/build/x64-Release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build out/build/x64-Release
 ```
 
-Output is a single `Drizzle.exe` (~132 KB).
+Output is a single `Drizzle.exe` (~136 KB, with embedded version metadata).
 
 ### Android
 
@@ -124,7 +124,7 @@ gradle assembleRelease bundleRelease
 ```
 
 Outputs:
-- `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~219 KB)
+- `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~214 KB)
 - `app/build/outputs/bundle/release/Drizzle_v{version}.aab` (upload this to Play Console)
 
 Play Console requirements (free app still needs these):
@@ -153,7 +153,7 @@ open ios/iDrizzle.xcodeproj
 > Signing is sourced from `ios/Local.xcconfig`, which is gitignored so no personal
 > Apple Team ID is committed. Leave it empty for simulator builds or CI.
 
-App size on device: ~275 KB.
+App size on device: ~277 KB.
 
 ---
 
@@ -175,6 +175,11 @@ open ios/iDrizzleWatch.xcodeproj
 ```
 
 > `setup-ios-local.sh` copies both app icons and opens both projects for you.
+
+App size on device: ~699 KB. The watch build is larger than the iPhone app
+because watchOS has no system `WKWebView`, so it bundles a native SwiftUI radar
+renderer plus the `us-states.geo.json` projection/hit-mapping data and the
+ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 
 ---
 
