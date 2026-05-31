@@ -63,7 +63,11 @@ shipped through its own record, not embedded.
 
 App Store Connect → *Users and Access → Integrations tab → App Store Connect API*:
 
-1. Click **+** to generate a key. Name it (e.g. `iDrizzle CI`), role **App Manager**.
+1. Click **+** to generate a key. Name it (e.g. `iDrizzle CI`), role **Admin**.
+   The **Admin** role is required: cloud signing in CI (`-allowProvisioningUpdates`)
+   has to create the Apple Distribution certificate and App Store provisioning
+   profile, which the lesser *App Manager* role cannot do — it fails with
+   `Cloud signing permission error` / `No profiles for 'com.idrizzle.app' were found`.
 2. Note the **Key ID** (in the keys list) and the **Issuer ID** (shown above the list).
 3. **Download** the `AuthKey_XXXXXXXXXX.p8` — you can only download it **once**.
    Keep it on your Mac, outside the repo.
