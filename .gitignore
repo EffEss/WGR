@@ -38,7 +38,6 @@ Assets/us-states-fresh.json
 Assets/radar84kb.ico
 Assets/radar6kb.png
 fix_geojson.py
-setup-ios-local.sh
 
 # Android
 android/.gradle/
