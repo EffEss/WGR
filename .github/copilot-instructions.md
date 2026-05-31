@@ -1,8 +1,8 @@
 # Copilot Instructions
 
 ## Project Guidelines
-- When building the iOS app locally, must run `cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png` before building in Xcode. The destination file is gitignored and not in the repo.
-- When building the watchOS app (`ios/iDrizzleWatch`) locally, must run `cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png` before building in Xcode. The destination file is gitignored and not in the repo. `setup-ios-local.sh` copies both icons automatically.
+- When building the iOS app locally, must run `cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png` and `cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png` before building in Xcode. Both destination files are gitignored and not in the repo. The App Store requires the icon to come from the asset catalog (`ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`) so `CFBundleIconName` is generated.
+- When building the watchOS app (`ios/iDrizzleWatch`) locally, must run `cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png` and `cp Assets/iDrizzle.png ios/iDrizzleWatch/Assets.xcassets/AppIcon.appiconset/AppIcon.png` before building in Xcode. Both destination files are gitignored and not in the repo. `setup-ios-local.sh` copies all icons automatically.
 - When building the iOS app locally, must create `ios/Local.xcconfig` from `ios/Local.xcconfig.template` and set `DRIZZLE_DEVELOPMENT_TEAM` to the Apple Developer Team ID. The file is gitignored so the Team ID is never committed. The watchOS app reuses the same `ios/Local.xcconfig`.
 - When bumping the version for a new release, always update `versionName` in `android/app/build.gradle.kts` to match the new version number. The Android workflow reads this value to auto-rename the APK/AAB to `Drizzle_v{version}`.
 - For Play Store Android releases, always build a signed AAB (`bundleRelease`) and keep signing secrets in gitignored `android/keystore.properties` or GitHub Actions secrets, never in tracked files.

@@ -143,11 +143,12 @@ Play Console requirements (free app still needs these):
 
 ### iOS / iPadOS / macOS (iDrizzle)
 
-Built automatically via GitHub Actions. The iOS-family app is branded as **iDrizzle** (Android remains **Drizzle**). To build locally, requires a Mac with Xcode 16+.
+Built automatically via GitHub Actions. The iOS-family app is branded as **iDrizzle** (Android remains **Drizzle**). To build locally, requires a Mac with Xcode 26+ (App Store requires the iOS 26 SDK).
 
 ```sh
-# Copy the iOS app icon (required before first build, file is gitignored)
+# Copy the iOS app icon (required before first build, files are gitignored)
 cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
+cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
 
 # Provide your Apple Developer Team ID for local signing (file is gitignored)
 cp ios/Local.xcconfig.template ios/Local.xcconfig
@@ -173,8 +174,9 @@ ImageIO). Pick a region, refresh, and clear the cache right from the wrist.
 Targets watchOS 26+ (Apple Watch Ultra 3 and Series 11).
 
 ```sh
-# Copy the watch app icon (required before first build, file is gitignored)
+# Copy the watch app icon (required before first build, files are gitignored)
 cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
+cp Assets/iDrizzle.png ios/iDrizzleWatch/Assets.xcassets/AppIcon.appiconset/AppIcon.png
 
 # Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
 # Open in Xcode and run iDrizzleWatch on an Apple Watch destination.

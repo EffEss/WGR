@@ -244,7 +244,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
@@ -265,7 +265,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
