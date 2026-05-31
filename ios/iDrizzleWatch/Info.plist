@@ -19,7 +19,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>2.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>3.0011</string>
+	<string>4.0011</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKWatchOnly</key>
