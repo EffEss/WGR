@@ -96,6 +96,18 @@ jobs:
           # so package the already distribution-signed .app into an IPA and upload
           # it directly with altool instead of using -exportArchive.
           APP_PATH="build/iDrizzleWatch.xcarchive/Products/Applications/iDrizzleWatch.app"
+
+          # altool derives the upload platform from keys Xcode injects into the
+          # processed Info.plist. Dump them so any "cannot determine platform"
+          # failure shows exactly what is present in the built app.
+          echo "=== Built app Info.plist platform keys ==="
+          for KEY in DTPlatformName DTSDKName MinimumOSVersion UIDeviceFamily \
+                     CFBundleSupportedPlatforms WKApplication WKWatchOnly; do
+            VALUE=$(/usr/libexec/PlistBuddy -c "Print :${KEY}" "${APP_PATH}/Info.plist" 2>/dev/null || echo "<missing>")
+            echo "${KEY} = ${VALUE}"
+          done
+          echo "=========================================="
+
           rm -rf build/iDrizzleWatch-ipa
           mkdir -p build/iDrizzleWatch-ipa/Payload
           cp -R "${APP_PATH}" build/iDrizzleWatch-ipa/Payload/
