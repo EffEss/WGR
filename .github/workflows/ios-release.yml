@@ -1,0 +1,96 @@
+name: iOS Release
+
+# Signed build + upload of iDrizzle (iOS) and iDrizzleWatch (watchOS) to
+# App Store Connect / TestFlight. Runs on a version tag (e.g. v2.1.0) or
+# manually via the Actions tab. Requires the repository secrets listed in
+# the README "Publishing to the App Store" section.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      TEAM_ID: ${{ secrets.DRIZZLE_DEVELOPMENT_TEAM }}
+      ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy app icons
+        run: |
+          cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
+          cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
+
+      # Write the App Store Connect API key (.p8) from the base64 secret so
+      # xcodebuild can authenticate for both signing and upload.
+      - name: Write App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 --decode > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      # Substitute the Team ID into both export options plists.
+      - name: Inject Team ID into export options
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :teamID ${TEAM_ID}" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :teamID ${TEAM_ID}" ios/ExportOptionsWatch.plist
+
+      # ---- iDrizzle (iOS) ----
+      - name: Archive iDrizzle (iOS)
+        run: |
+          xcodebuild -project ios/iDrizzle.xcodeproj \
+            -scheme iDrizzle \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/iDrizzle.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            DEVELOPMENT_TEAM="${TEAM_ID}" \
+            CODE_SIGN_STYLE=Automatic \
+            archive
+
+      - name: Upload iDrizzle to App Store Connect
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/iDrizzle.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/iDrizzle-export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+
+      # ---- iDrizzleWatch (watchOS) ----
+      - name: Archive iDrizzleWatch (watchOS)
+        run: |
+          xcodebuild -project ios/iDrizzleWatch.xcodeproj \
+            -scheme iDrizzleWatch \
+            -configuration Release \
+            -sdk watchos \
+            -archivePath build/iDrizzleWatch.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            DEVELOPMENT_TEAM="${TEAM_ID}" \
+            CODE_SIGN_STYLE=Automatic \
+            archive
+
+      - name: Upload iDrizzleWatch to App Store Connect
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/iDrizzleWatch.xcarchive \
+            -exportOptionsPlist ios/ExportOptionsWatch.plist \
+            -exportPath build/iDrizzleWatch-export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+
+      - name: Clean up API key
+        if: always()
+        run: rm -f ~/private_keys/AuthKey_${ASC_KEY_ID}.p8

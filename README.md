@@ -190,6 +190,57 @@ ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 
 ---
 
+## Publishing to the App Store
+
+iOS/watchOS releases are automated with GitHub Actions
+([`.github/workflows/ios-release.yml`](.github/workflows/ios-release.yml)). Pushing a
+version tag (e.g. `git tag v2.1.0 && git push origin v2.1.0`) — or running the
+**iOS Release** workflow manually from the Actions tab — archives both
+`iDrizzle` (iOS) and `iDrizzleWatch` (watchOS) with automatic signing and
+uploads them straight to App Store Connect / TestFlight. No certificates or
+provisioning profiles are stored in the repo; Xcode's
+`-allowProvisioningUpdates` creates them in CI using an App Store Connect API
+key.
+
+### One-time setup
+
+1. **Register the bundle IDs** in App Store Connect → *Certificates, Identifiers & Profiles → Identifiers*:
+   - `com.idrizzle.app` (iOS app)
+   - `com.idrizzle.watchapp` (watchOS app)
+2. **Create the app records** in App Store Connect (*My Apps → +*) for the iOS app and the standalone watch app.
+3. **Create an App Store Connect API key** (*Users and Access → Integrations → App Store Connect API*) with the **App Manager** role and download the `.p8` (you can only download it once).
+
+### Required GitHub repository secrets
+
+Add these under *Settings → Secrets and variables → Actions* (open source = keep
+all secrets here, never in tracked files):
+
+| Secret | What it is |
+| --- | --- |
+| `DRIZZLE_DEVELOPMENT_TEAM` | Your 10-character Apple Developer **Team ID**. |
+| `ASC_API_KEY_ID` | The API **Key ID** from App Store Connect (e.g. `ABC123XYZ9`). |
+| `ASC_API_ISSUER_ID` | The **Issuer ID** (UUID) shown above the API keys list. |
+| `ASC_API_KEY_P8_BASE64` | The downloaded `.p8` file, base64-encoded (`base64 -i AuthKey_XXXX.p8 \| pbcopy` on macOS). |
+
+### App Store Connect metadata fields to fill out
+
+The store listing must be completed once per app in App Store Connect (these are
+not automatable and are required even for a free app):
+
+- **App name** and **subtitle** — `iDrizzle` / `iDrizzleWatch`
+- **Primary category** (Weather) and optional secondary category
+- **Description**, **keywords**, **promotional text**, and **support URL**
+- **Privacy policy URL**
+- **App Privacy** questionnaire (this app collects no user data; radar GIFs are fetched anonymously from AccuWeather)
+- **Age rating** questionnaire
+- **Pricing & Availability** (Free)
+- **Screenshots** for each required device size (6.7"/6.5" iPhone, 12.9" iPad, and Apple Watch) — see [`Assets/screenshots/`](Assets/screenshots)
+- **App icon** (1024×1024, opaque) — `Assets/iDrizzle.png`
+- **Export compliance** answer (uses only standard HTTPS — exempt)
+- **Build** selection (auto-populated by the uploaded TestFlight build)
+
+---
+
 ## Project Structure
 
 ```

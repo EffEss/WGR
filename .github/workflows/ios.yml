@@ -1,7 +1,8 @@
 name: iOS
 on:
   push:
-    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/iDrizzle.png']  workflow_dispatch:
+    paths: ['ios/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/iDrizzle.png']
+  workflow_dispatch:
 
 jobs:
   build:
