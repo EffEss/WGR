@@ -2,25 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Upload the iDrizzle iOS app directly to App Store Connect / TestFlight.
-		 Manual signing: the certificate and provisioning profile are injected
-		 by the release workflow (CI cannot use automatic signing without
-		 hitting Apple's distribution-certificate limit). -->
+	<!-- Upload the iDrizzle iOS app (with its embedded iDrizzleWatch Watch App)
+		 directly to App Store Connect / TestFlight. Automatic signing: the
+		 distribution certificate is pre-imported into the keychain by the
+		 release workflow and -allowProvisioningUpdates lets Xcode resolve the
+		 App Store profiles for both com.idrizzle.app and
+		 com.idrizzle.app.watchkitapp via the App Store Connect API key. -->
 	<key>method</key>
 	<string>app-store-connect</string>
 	<key>destination</key>
 	<string>upload</string>
 	<key>signingStyle</key>
-	<string>manual</string>
-	<key>signingCertificate</key>
-	<string>Apple Distribution</string>
+	<string>automatic</string>
 	<key>teamID</key>
 	<string>__TEAM_ID__</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>com.idrizzle.app</key>
-		<string>__IOS_PROFILE_NAME__</string>
-	</dict>
 	<key>uploadSymbols</key>
 	<true/>
 	<key>manageAppVersionAndBuildNumber</key>

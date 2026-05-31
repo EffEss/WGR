@@ -1,0 +1,10 @@
+// Local signing configuration for the Drizzle iOS app.
+//
+// 1. Copy this file to "Local.xcconfig" (same folder).
+// 2. Set DRIZZLE_DEVELOPMENT_TEAM to your 10-character Apple Developer Team ID
+//    (Xcode > Settings > Accounts, or developer.apple.com > Membership).
+//
+// Local.xcconfig is gitignored so your Team ID never lands in the public repo.
+// Leaving it empty is fine for simulator builds or CI (CODE_SIGNING_ALLOWED=NO).
+
+DRIZZLE_DEVELOPMENT_TEAM =

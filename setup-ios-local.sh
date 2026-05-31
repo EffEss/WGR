@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ICON_SRC="$ROOT_DIR/Assets/iDrizzle.png"
 IOS_APP_DIR="iDrizzle"
-WATCH_APP_DIR="iDrizzleWatch"
+WATCH_APP_DIR="iDrizzleWatch Watch App"
 ICON_DST="$ROOT_DIR/ios/$IOS_APP_DIR/AppIcon.png"
 WATCH_ICON_DST="$ROOT_DIR/ios/$WATCH_APP_DIR/AppIcon.png"
 ICON_ASSET_DST="$ROOT_DIR/ios/$IOS_APP_DIR/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
@@ -12,7 +12,6 @@ WATCH_ICON_ASSET_DST="$ROOT_DIR/ios/$WATCH_APP_DIR/Assets.xcassets/AppIcon.appic
 XCCONFIG_TEMPLATE="$ROOT_DIR/ios/Local.xcconfig.template"
 XCCONFIG_LOCAL="$ROOT_DIR/ios/Local.xcconfig"
 PROJECT_PATH="$ROOT_DIR/ios/iDrizzle.xcodeproj"
-WATCH_PROJECT_PATH="$ROOT_DIR/ios/iDrizzleWatch.xcodeproj"
 
 if [[ ! -f "$ICON_SRC" ]]; then
   echo "Missing iOS icon source: $ICON_SRC"
@@ -52,8 +51,3 @@ fi
 
 open "$PROJECT_PATH"
 echo "Opened ios/iDrizzle.xcodeproj in Xcode"
-
-if [[ -d "$WATCH_PROJECT_PATH" ]]; then
-  open "$WATCH_PROJECT_PATH"
-  echo "Opened ios/iDrizzleWatch.xcodeproj in Xcode"
-fi

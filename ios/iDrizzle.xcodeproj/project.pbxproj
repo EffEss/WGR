@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		17AEEAE22FCC09F900E7C3AF /* iDrizzleWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* AppDelegate.swift */; };
 		A1000002 /* RadarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* RadarViewController.swift */; };
 		A1000003 /* AppSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* AppSchemeHandler.swift */; };
@@ -16,20 +17,66 @@
 		A1000008 /* us-states.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000012 /* us-states.geo.json */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		17AEEAE02FCC09F900E7C3AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 17AEEAD72FCC09F800E7C3AF;
+			remoteInfo = "iDrizzleWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		17AEEAE62FCC09F900E7C3AF /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				17AEEAE22FCC09F900E7C3AF /* iDrizzleWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iDrizzleWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2000002 /* RadarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadarViewController.swift; sourceTree = "<group>"; };
 		A2000003 /* AppSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemeHandler.swift; sourceTree = "<group>"; };
 		A2000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000008 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
+		A2000010 /* iDrizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iDrizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
 		A2000012 /* us-states.geo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "us-states.geo.json"; path = "../Assets/us-states.geo.json"; sourceTree = SOURCE_ROOT; };
-		A2000010 /* iDrizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iDrizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A2000020 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Local.xcconfig; path = Local.xcconfig; sourceTree = SOURCE_ROOT; };
+		A2000020 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		17AEEAF02FCC09F900E7C3AF /* Exceptions for "iDrizzleWatch Watch App" folder in "iDrizzleWatch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		17AEEAD92FCC09F800E7C3AF /* iDrizzleWatch Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17AEEAF02FCC09F900E7C3AF /* Exceptions for "iDrizzleWatch Watch App" folder in "iDrizzleWatch Watch App" target */, ); explicitFileTypes = {}; explicitFolders = (); path = "iDrizzleWatch Watch App"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		17AEEAD52FCC09F800E7C3AF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -44,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				A4000002 /* iDrizzle */,
+				17AEEAD92FCC09F800E7C3AF /* iDrizzleWatch Watch App */,
 				A4000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000010 /* iDrizzle.app */,
+				17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +124,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17AEEAE32FCC09F900E7C3AF /* Build configuration list for PBXNativeTarget "iDrizzleWatch Watch App" */;
+			buildPhases = (
+				17AEEAD42FCC09F800E7C3AF /* Sources */,
+				17AEEAD52FCC09F800E7C3AF /* Frameworks */,
+				17AEEAD62FCC09F800E7C3AF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				17AEEAD92FCC09F800E7C3AF /* iDrizzleWatch Watch App */,
+			);
+			name = "iDrizzleWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "iDrizzleWatch Watch App";
+			productReference = 17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		A5000001 /* iDrizzle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A7000001 /* Build configuration list for PBXNativeTarget "iDrizzle" */;
@@ -82,10 +153,12 @@
 				A3000002 /* Sources */,
 				A3000001 /* Frameworks */,
 				A3000003 /* Resources */,
+				17AEEAE62FCC09F900E7C3AF /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				17AEEAE12FCC09F900E7C3AF /* PBXTargetDependency */,
 			);
 			name = iDrizzle;
 			productName = iDrizzle;
@@ -99,8 +172,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					17AEEAD72FCC09F800E7C3AF = {
+						CreatedOnToolsVersion = 26.5;
+					};
+				};
 			};
 			buildConfigurationList = A7000002 /* Build configuration list for PBXProject "iDrizzle" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -116,11 +194,19 @@
 			projectRoot = "";
 			targets = (
 				A5000001 /* iDrizzle */,
+				17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		17AEEAD62FCC09F800E7C3AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -135,6 +221,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		17AEEAD42FCC09F800E7C3AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -147,7 +240,117 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		17AEEAE12FCC09F900E7C3AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */;
+			targetProxy = 17AEEAE02FCC09F900E7C3AF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		17AEEAE42FCC09F900E7C3AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000020 /* Local.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "iDrizzleWatch Watch App/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.idrizzle.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		17AEEAE52FCC09F900E7C3AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000020 /* Local.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "iDrizzleWatch Watch App/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.idrizzle.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
 		A8000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -244,7 +447,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
@@ -265,7 +468,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A2000020 /* Local.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
@@ -285,6 +488,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		17AEEAE32FCC09F900E7C3AF /* Build configuration list for PBXNativeTarget "iDrizzleWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				17AEEAE42FCC09F900E7C3AF /* Debug */,
+				17AEEAE52FCC09F900E7C3AF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A7000001 /* Build configuration list for PBXNativeTarget "iDrizzle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

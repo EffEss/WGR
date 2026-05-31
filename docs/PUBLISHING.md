@@ -4,9 +4,10 @@ This guide covers the full, repeatable process for releasing the Apple platform
 apps. iOS/watchOS releases are automated with GitHub Actions
 ([`.github/workflows/ios-release.yml`](../.github/workflows/ios-release.yml)).
 
-`iDrizzle` (iOS/iPadOS) and `iDrizzleWatch` (watchOS) are **two independent,
-standalone apps** — the watch app is not embedded in the iOS app — so each gets
-its **own App Store Connect app record** and its own listing.
+`iDrizzle` and `iDrizzleWatch Watch App` now live in **one Xcode project**
+(`ios/iDrizzle.xcodeproj`). The watch target is `WKWatchOnly` (independent on
+watch hardware) but is packaged through the iOS archive via Xcode's
+**Embed Watch Content** relationship.
 
 > **Security note:** all credentials live in GitHub **encrypted repository
 > secrets** (Settings → Secrets and variables → Actions). Nothing secret is ever
@@ -19,18 +20,18 @@ its **own App Store Connect app record** and its own listing.
 ## How a release works
 
 Pushing a version tag — or running the **iOS Release** workflow manually from the
-Actions tab — archives both apps with automatic signing and uploads them straight
-to App Store Connect / TestFlight:
+Actions tab — archives the `iDrizzle` scheme (which includes the embedded watch
+app) and uploads once to App Store Connect / TestFlight:
 
 ```sh
 git tag v2.1.0
 git push origin v2.1.0
 ```
 
-No certificates or provisioning profiles are stored in the repo; Xcode's
-`-allowProvisioningUpdates` creates them in CI using the App Store Connect API
-key. Since the watch app changes rarely, a tagged release also re-uploads it, but
-that only produces a new review if its version/build number was bumped.
+No certificates or provisioning profiles are stored in the repo; CI imports one
+Apple Distribution certificate and then Xcode's `-allowProvisioningUpdates`
+resolves the needed App Store profiles for both `com.idrizzle.app` and
+`com.idrizzle.app.watchkitapp` using the App Store Connect API key.
 
 ---
 
@@ -38,31 +39,26 @@ that only produces a new review if its version/build number was bumped.
 
 ### 1. Register the bundle IDs
 
-App Store Connect → *Certificates, Identifiers & Profiles → Identifiers* →
+Apple Developer → *Certificates, Identifiers & Profiles → Identifiers* →
 **+ → App IDs → App** (Explicit):
 
 - `com.idrizzle.app` — iOS app
-- `com.idrizzle.watchapp` — standalone watchOS app
+- `com.idrizzle.app.watchkitapp` — embedded watch app target
 
 > Old `com.drizzle.*` identifiers from earlier attempts are permanently locked by
 > Apple once they've touched the App Store and **cannot be deleted**. This is
 > expected and harmless — they never conflict with the `com.idrizzle.*` IDs and
 > can be ignored.
 
-### 2. Create two app records
+### 2. Create the iOS app record
 
 App Store Connect → *My Apps → +*:
 
-- **iDrizzle** bound to `com.idrizzle.app` (platforms: iOS, iPadOS, macOS as desired)
-- **iDrizzleWatch** bound to `com.idrizzle.watchapp` (watchOS)
+- **iDrizzle** bound to `com.idrizzle.app`
 
-> When creating the **iDrizzleWatch** record, choose **iOS** as the platform.
-> App Store Connect has no separate "watchOS" platform option for a *new app* —
-> a watch-only app is registered under the iOS platform and Apple infers it is
-> watchOS from the uploaded build's `WKApplication`/`WKWatchOnly` flags.
-
-Leave the *Apple Watch* screenshot tab on the iOS record empty — the watch app is
-shipped through its own record, not embedded.
+The watch app is delivered through the iOS app's archive (embedded watch content),
+so there is no separate watch upload pipeline or `altool --upload-package` step.
+Keep watch metadata/screenshots aligned in the iOS app's App Store Connect record.
 
 ### 3. Create an App Store Connect API key
 
@@ -89,13 +85,8 @@ Add these under *Settings → Secrets and variables → Actions → New reposito
 | `ASC_API_KEY_ID` | The API **Key ID** from the App Store Connect API keys list. |
 | `ASC_API_ISSUER_ID` | The **Issuer ID** (UUID) shown above the API keys list. |
 | `ASC_API_KEY_P8_BASE64` | The downloaded `.p8`, base64-encoded. |
-| `ASC_WATCH_APPLE_ID` | The numeric **Apple ID** (ADAM ID) of the standalone *iDrizzleWatch* App Store Connect record. Open the watch app in App Store Connect → **App Information** → *Apple ID*. Needed because the watch IPA is uploaded with `altool --upload-package`, which requires the app's Apple ID explicitly. |
-| `WATCH_DIST_CERT_P12_BASE64` | Your Apple **Distribution** certificate **and private key** exported as a `.p12`, then base64-encoded. This single certificate signs **both** the iOS and watch apps. Required because CI uses manual signing (automatic signing creates a new distribution certificate on every run and quickly hits Apple's certificate limit). See below. |
+| `WATCH_DIST_CERT_P12_BASE64` | Your Apple **Distribution** certificate **and private key** exported as a `.p12`, then base64-encoded. CI imports this cert into a temporary keychain so Xcode reuses it instead of trying to create a new distribution certificate each run. |
 | `WATCH_DIST_CERT_PASSWORD` | The password you set when exporting the `.p12`. |
-| `IOS_PROVISION_PROFILE_BASE64` | An **App Store** provisioning profile for `com.idrizzle.app` (download the `.mobileprovision` from the Apple Developer site), base64-encoded. Must reference the same distribution certificate as the `.p12` above. |
-| `IOS_PROVISION_PROFILE_NAME` | The exact **name** of the iOS profile as shown on the Apple Developer site. |
-| `WATCH_PROVISION_PROFILE_BASE64` | An **App Store** provisioning profile for `com.idrizzle.watchapp` (download the `.mobileprovision` from the Apple Developer site), base64-encoded. Must reference the same distribution certificate as the `.p12` above. |
-| `WATCH_PROVISION_PROFILE_NAME` | The exact **name** of the watch profile as shown on the Apple Developer site (used as `PROVISIONING_PROFILE_SPECIFIER`). |
 
 To produce the base64 value, run on your **Mac**:
 
@@ -105,39 +96,25 @@ base64 -i ~/Downloads/AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 That copies the encoded key to the clipboard so you can paste it into the secret.
 
-### Generating the distribution certificate and profiles
+### Generating the distribution certificate
 
-Both apps are **manually** distribution-signed in CI (a clean runner has no
-signing identity, and automatic signing would create a new distribution
-certificate every run until Apple blocks it; the watch app additionally cannot
-be exported to the App Store by `xcodebuild` any other way). One-time setup:
+CI uses automatic signing with `-allowProvisioningUpdates`, but a clean runner
+still needs an Apple Distribution certificate + private key available in its
+keychain so Xcode can reuse it (instead of trying to create a new one each run).
+One-time setup:
 
-1. The easiest way to get the **Apple Distribution** certificate with its
-   private key is **Xcode → Settings → Accounts → (your team) → Manage
-   Certificates… → + → Apple Distribution**, then right-click it →
-   **Export Certificate** to save a `.p12` (set a password). Base64-encode it
-   for `WATCH_DIST_CERT_P12_BASE64` and store the password in
-   `WATCH_DIST_CERT_PASSWORD`:
+1. In **Xcode → Settings → Accounts → (your team) → Manage Certificates… → + → Apple Distribution**, create/select your distribution cert, then right-click it →
+   **Export Certificate** to save a `.p12` (set a password).
+2. Base64-encode the `.p12` and store it in `WATCH_DIST_CERT_P12_BASE64`, and
+   store the export password in `WATCH_DIST_CERT_PASSWORD`:
 
    ```sh
    base64 -i ~/Desktop/distribution.p12 | pbcopy
    ```
 
-2. On the Apple Developer site → *Profiles*, create **two App Store**
-   provisioning profiles tied to that distribution certificate — one for
-   `com.idrizzle.app` and one for `com.idrizzle.watchapp`. Download each
-   `.mobileprovision`, base64-encode it, and record its exact display name:
-
-   ```sh
-   base64 -i ~/Downloads/iDrizzle_AppStore.mobileprovision | pbcopy        # IOS_PROVISION_PROFILE_BASE64
-   base64 -i ~/Downloads/iDrizzleWatch_AppStore.mobileprovision | pbcopy   # WATCH_PROVISION_PROFILE_BASE64
-   ```
-
-   Put the iOS profile name in `IOS_PROVISION_PROFILE_NAME` and the watch
-   profile name in `WATCH_PROVISION_PROFILE_NAME`.
-
-   > Refresh these secrets whenever the certificate or profiles expire
-   > (certificates last 1 year, profiles up to 1 year).
+Xcode then manages provisioning profiles for both bundle IDs (`com.idrizzle.app`
+and `com.idrizzle.app.watchkitapp`) during CI archive/export using the App Store
+Connect API key.
 
 > The GitHub Action authenticates to Apple **solely** through these secrets.
 > It does not use Xcode's GitHub connection or your Apple ID login — the CI runner
@@ -147,9 +124,9 @@ be exported to the App Store by `xcodebuild` any other way). One-time setup:
 
 ## App Store Connect metadata fields
 
-The store listing must be completed once per app (required even for a free app):
+The store listing must be completed for the iOS app record (required even for a free app):
 
-- **App name** and **subtitle** — `iDrizzle` / `iDrizzleWatch`
+- **App name** and **subtitle** — `iDrizzle`
 - **Primary category** (Weather) and optional secondary category
 - **Description**, **keywords**, **promotional text**, and **support URL**
 - **Privacy policy URL**

@@ -167,23 +167,23 @@ App size on device: ~277 KB.
 
 ### Apple Watch (iDrizzleWatch)
 
-A standalone watchOS app in `ios/iDrizzleWatch/` mirrors the same radar
-functionality natively in SwiftUI (watchOS has no `WKWebView`, so the radar
-GIFs are downloaded from the same AccuWeather endpoint and animated with
-ImageIO). Pick a region, refresh, and clear the cache right from the wrist.
-Targets watchOS 26+ (Apple Watch Ultra 3 and Series 11).
+The watchOS app target (`iDrizzleWatch Watch App`) now lives in the same Xcode
+project as iOS (`ios/iDrizzle.xcodeproj`). It remains watch-only
+(`WKWatchOnly`) and mirrors the same radar functionality natively in SwiftUI
+(watchOS has no `WKWebView`, so radar GIFs are downloaded from the same
+AccuWeather endpoint and animated with ImageIO).
 
 ```sh
 # Copy the watch app icon (required before first build, files are gitignored)
-cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
-cp Assets/iDrizzle.png ios/iDrizzleWatch/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/AppIcon.png"
+cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 
 # Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
-# Open in Xcode and run iDrizzleWatch on an Apple Watch destination.
-open ios/iDrizzleWatch.xcodeproj
+# Open the single project and run the watch target on an Apple Watch destination.
+open ios/iDrizzle.xcodeproj
 ```
 
-> `setup-ios-local.sh` copies both app icons and opens both projects for you.
+> `setup-ios-local.sh` copies both app icons and opens the single project.
 
 App size on device: ~699 KB. The watch build is larger than the iPhone app
 because watchOS has no system `WKWebView`, so it bundles a native SwiftUI radar
@@ -197,17 +197,16 @@ ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 iOS/watchOS releases are automated with GitHub Actions
 ([`.github/workflows/ios-release.yml`](.github/workflows/ios-release.yml)). Pushing a
 version tag (e.g. `git tag v2.1.0 && git push origin v2.1.0`) — or running the
-**iOS Release** workflow manually from the Actions tab — archives both
-`iDrizzle` (iOS) and `iDrizzleWatch` (watchOS) with automatic signing and
-uploads them straight to App Store Connect / TestFlight. The two apps ship as
-**separate App Store records** (the watch app is standalone, not embedded).
+**iOS Release** workflow manually from the Actions tab — archives the `iDrizzle`
+scheme (which includes the embedded watch target) and uploads once to App Store
+Connect / TestFlight.
 
 Authentication uses an **App Store Connect API key** stored as encrypted GitHub
 repository secrets — no certificates, profiles, or IDs live in the repo.
 
 **See [`docs/PUBLISHING.md`](docs/PUBLISHING.md)** for the full guide: registering
-bundle IDs, creating the app records, generating the API key, the four required
-GitHub secrets, and the App Store Connect metadata checklist.
+bundle IDs, generating the API key, required GitHub secrets, and the App Store
+Connect metadata checklist.
 
 ---
 
@@ -233,11 +232,11 @@ Drizzle/
 │   ├── iDrizzle/
 │   │   ├── RadarViewController.swift
 │   │   └── AppSchemeHandler.swift
-│   └── iDrizzleWatch/        # watchOS app (native SwiftUI)
+│   └── iDrizzleWatch Watch App/  # watchOS app target (native SwiftUI)
 │       ├── RadarService.swift
 │       ├── GIFImage.swift
 │       └── ContentView.swift
-└── .github/workflows/    # CI: builds APK + iOS/watchOS archives on push
+└── .github/workflows/    # CI: builds APK + iOS archive (includes watch target) on push
 ```
 
 ---

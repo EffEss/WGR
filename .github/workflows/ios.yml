@@ -14,9 +14,9 @@ jobs:
       - name: Copy app icon
         run: |
           cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
-          cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
+          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/AppIcon.png"
           cp Assets/iDrizzle.png ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/AppIcon.png
-          cp Assets/iDrizzle.png ios/iDrizzleWatch/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+          cp Assets/iDrizzle.png "ios/iDrizzleWatch Watch App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 
       # Ensure gitignored local signing config exists for Xcode build settings
       - name: Prepare Local.xcconfig for CI
@@ -25,6 +25,9 @@ jobs:
             cp ios/Local.xcconfig.template ios/Local.xcconfig
           fi
 
+      # Archiving the iDrizzle scheme also builds the embedded iDrizzleWatch
+      # Watch App (via the "Embed Watch Content" phase), so this single build
+      # validates both the iOS app and the watch app.
       - name: Build
         run: |
           xcodebuild -project ios/iDrizzle.xcodeproj \
@@ -37,24 +40,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             archive
 
-      - name: Build watchOS app
-        run: |
-          xcodebuild -project ios/iDrizzleWatch.xcodeproj \
-            -scheme iDrizzleWatch \
-            -configuration Release \
-            -destination 'generic/platform=watchOS' \
-            -archivePath build/iDrizzleWatch.xcarchive \
-            DRIZZLE_DEVELOPMENT_TEAM="" \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_ALLOWED=NO \
-            archive
-
       - uses: actions/upload-artifact@v4
         with:
           name: idrizzle-ios
           path: build/iDrizzle.xcarchive
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: idrizzle-watchos
-          path: build/iDrizzleWatch.xcarchive
