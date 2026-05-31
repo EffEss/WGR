@@ -164,10 +164,10 @@ App size on device: ~277 KB.
 ### Apple Watch (iDrizzleWatch)
 
 The watchOS app target (`iDrizzleWatch Watch App`) now lives in the same Xcode
-project as iOS (`ios/iDrizzle.xcodeproj`). It remains watch-only
-(`WKWatchOnly`) and mirrors the same radar functionality natively in SwiftUI
-(watchOS has no `WKWebView`, so radar GIFs are downloaded from the same
-AccuWeather endpoint and animated with ImageIO).
+project as iOS (`ios/iDrizzle.xcodeproj`). It remains an independent,
+watch-only app (`WKWatchOnly`) and mirrors the same radar functionality natively
+in SwiftUI (watchOS has no `WKWebView`, so radar GIFs are downloaded from the
+same AccuWeather endpoint and animated with ImageIO).
 
 ```sh
 # Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
@@ -186,12 +186,14 @@ ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 
 ## Publishing to the App Store
 
-iOS/watchOS releases are automated with GitHub Actions
+iOS releases are automated with GitHub Actions
 ([`.github/workflows/ios-release.yml`](.github/workflows/ios-release.yml)). Pushing a
-version tag (e.g. `git tag v2.1.0 && git push origin v2.1.0`) — or running the
-**iOS Release** workflow manually from the Actions tab — archives the `iDrizzle`
-scheme (which includes the embedded watch target) and uploads once to App Store
-Connect / TestFlight.
+version tag (e.g. `git tag v2.2.0 && git push origin v2.2.0`) — or running the
+**iOS Release** workflow manually from the Actions tab — archives and uploads the
+iOS app build to App Store Connect / TestFlight.
+
+The watch app remains an independent watch-only target in the same Xcode project
+for local build/run/testing on Apple Watch.
 
 Authentication uses an **App Store Connect API key** stored as encrypted GitHub
 repository secrets — no certificates, profiles, or IDs live in the repo.

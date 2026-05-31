@@ -61,6 +61,7 @@ ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 
 # iOS local signing config (holds personal Apple Team ID, see Local.xcconfig.template)
 ios/Local.xcconfig
+ios/iDrizzleWatch Watch App/Local.xcconfig
 
 # README screenshots (cosmetic only, not needed for builds)
 # Assets/screenshots/windows/drizzle_usa.png, Assets/screenshots/windows/drizzle_state.png,
