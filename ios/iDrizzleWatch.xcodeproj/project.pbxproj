@@ -231,7 +231,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.drizzle.watchapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.idrizzle.watchapp;
 				PRODUCT_NAME = iDrizzleWatch;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -254,7 +254,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.drizzle.watchapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.idrizzle.watchapp;
 				PRODUCT_NAME = iDrizzleWatch;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
