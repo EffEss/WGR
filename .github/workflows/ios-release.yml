@@ -20,6 +20,13 @@ jobs:
       # Connect record. altool --upload-package needs it because a watch-only
       # bundle cannot be classified by --upload-app's plist inference.
       WATCH_APPLE_ID: ${{ secrets.ASC_WATCH_APPLE_ID }}
+      # Manual distribution signing material for the watch app. xcodebuild
+      # cannot export a standalone watchOS archive to the App Store, so the
+      # archive itself must be distribution-signed up front.
+      WATCH_DIST_CERT_P12_BASE64: ${{ secrets.WATCH_DIST_CERT_P12_BASE64 }}
+      WATCH_DIST_CERT_PASSWORD: ${{ secrets.WATCH_DIST_CERT_PASSWORD }}
+      WATCH_PROVISION_PROFILE_BASE64: ${{ secrets.WATCH_PROVISION_PROFILE_BASE64 }}
+      WATCH_PROVISION_PROFILE_NAME: ${{ secrets.WATCH_PROVISION_PROFILE_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,11 +51,10 @@ jobs:
           mkdir -p ~/private_keys
           echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 --decode > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
 
-      # Substitute the Team ID into both export options plists.
+      # Substitute the Team ID into the iOS export options plist.
       - name: Inject Team ID into export options
         run: |
           /usr/libexec/PlistBuddy -c "Set :teamID ${TEAM_ID}" ios/ExportOptions.plist
-          /usr/libexec/PlistBuddy -c "Set :teamID ${TEAM_ID}" ios/ExportOptionsWatch.plist
 
       # ---- iDrizzle (iOS) ----
       - name: Archive iDrizzle (iOS)
@@ -90,62 +96,82 @@ jobs:
           fi
 
       # ---- iDrizzleWatch (watchOS) ----
+      # A standalone watchOS archive cannot be exported to the App Store by
+      # xcodebuild -exportArchive (it only offers ad-hoc/enterprise/development
+      # methods), so the archive must be DISTRIBUTION-signed up front via manual
+      # signing. Import the distribution certificate into a temporary keychain
+      # and install the App Store provisioning profile.
+      - name: Set up watch distribution signing
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/watch-signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          CERT_PATH="$RUNNER_TEMP/watch_dist_cert.p12"
+          PROFILE_PATH="$RUNNER_TEMP/watch.mobileprovision"
+
+          echo "${WATCH_DIST_CERT_P12_BASE64}" | base64 --decode > "${CERT_PATH}"
+          echo "${WATCH_PROVISION_PROFILE_BASE64}" | base64 --decode > "${PROFILE_PATH}"
+
+          security create-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          security set-keychain-settings -lut 21600 "${KEYCHAIN_PATH}"
+          security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          security import "${CERT_PATH}" -P "${WATCH_DIST_CERT_PASSWORD}" \
+            -A -f pkcs12 -k "${KEYCHAIN_PATH}"
+          security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}" >/dev/null
+          # Make the temp keychain searchable alongside the login keychain.
+          security list-keychains -d user -s "${KEYCHAIN_PATH}" $(security list-keychains -d user | tr -d '"')
+
+          # Install the provisioning profile where Xcode looks for it.
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "${PROFILE_PATH}" ~/Library/MobileDevice/Provisioning\ Profiles/
+
+          # Expose the keychain path to later steps so the archive can unlock it.
+          echo "WATCH_KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> "$GITHUB_ENV"
+          echo "WATCH_KEYCHAIN_PASSWORD=${KEYCHAIN_PASSWORD}" >> "$GITHUB_ENV"
+
       - name: Archive iDrizzleWatch (watchOS)
         run: |
+          # Manual distribution signing: the archive must already carry the
+          # App Store distribution certificate + profile because the watch
+          # archive cannot be re-signed for the store by -exportArchive.
+          # -allowProvisioningUpdates is intentionally omitted so xcodebuild
+          # uses exactly the supplied profile instead of trying to manage one.
+          security unlock-keychain -p "${WATCH_KEYCHAIN_PASSWORD}" "${WATCH_KEYCHAIN_PATH}"
           xcodebuild -project ios/iDrizzleWatch.xcodeproj \
             -scheme iDrizzleWatch \
             -configuration Release \
             -destination 'generic/platform=watchOS' \
             -archivePath build/iDrizzleWatch.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "${ASC_KEY_ID}" \
-            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain ${WATCH_KEYCHAIN_PATH}" \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="${WATCH_PROVISION_PROFILE_NAME}" \
             archive
 
       - name: Upload iDrizzleWatch to App Store Connect
         run: |
-          # Two-stage approach for the standalone watch app:
+          # The archive is already distribution-signed (manual signing in the
+          # archive step), so no -exportArchive re-sign is needed — and it isn't
+          # even possible: xcodebuild -exportArchive refuses the app-store-connect
+          # method for standalone watchOS archives ("method expected
+          # {release-testing, enterprise, debugging}"). So just wrap the signed
+          # .app into an IPA and upload it.
           #
-          # 1. xcodebuild -exportArchive with destination=export re-signs the
-          #    app for App Store *distribution* and writes an IPA to disk. We
-          #    use export (not upload) because Xcode's IDEDistribution upload
-          #    pipeline fails for watch-only archives ("method not offering
-          #    app-store-connect"). Packaging the archive .app directly instead
-          #    keeps its development signature and is rejected by App Store
-          #    Connect with 90161 "Invalid Provisioning Profile ... A
-          #    distribution provisioning profile should be used".
-          # 2. altool uploads that distribution-signed IPA. --upload-package
-          #    with explicit --type ios + metadata avoids altool's platform
-          #    inference, which cannot classify a watch-only bundle
-          #    (CFBundleSupportedPlatforms=[WatchOS]).
-          rm -rf build/iDrizzleWatch-export
-          xcodebuild -exportArchive \
-            -archivePath build/iDrizzleWatch.xcarchive \
-            -exportOptionsPlist ios/ExportOptionsWatch.plist \
-            -exportPath build/iDrizzleWatch-export \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "${ASC_KEY_ID}" \
-            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
-
-          IPA_PATH=$(find build/iDrizzleWatch-export -name '*.ipa' | head -n 1)
-          if [ -z "${IPA_PATH}" ]; then
-            echo "No IPA produced by -exportArchive:"
-            ls -R build/iDrizzleWatch-export
-            exit 1
-          fi
-          echo "Distribution-signed IPA: ${IPA_PATH}"
-
-          # Read metadata from the archived (processed) app plist; altool
-          # --upload-package requires it to be supplied explicitly.
+          # altool --upload-app infers the platform from the bundle and cannot
+          # classify a watch-only bundle (CFBundleSupportedPlatforms=[WatchOS]),
+          # so use --upload-package with explicit --type ios + metadata. The
+          # standalone watch app lives under the iOS platform in App Store Connect.
           APP_PATH="build/iDrizzleWatch.xcarchive/Products/Applications/iDrizzleWatch.app"
+
+          rm -rf build/iDrizzleWatch-ipa
+          mkdir -p build/iDrizzleWatch-ipa/Payload
+          cp -R "${APP_PATH}" build/iDrizzleWatch-ipa/Payload/
+          (cd build/iDrizzleWatch-ipa && /usr/bin/zip -r -y ../iDrizzleWatch.ipa Payload >/dev/null)
+
           BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${APP_PATH}/Info.plist")
           BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${APP_PATH}/Info.plist")
           SHORT_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PATH}/Info.plist")
-          xcrun altool --upload-package "${IPA_PATH}" \
+          xcrun altool --upload-package build/iDrizzleWatch.ipa \
             --type ios \
             --apple-id "${WATCH_APPLE_ID}" \
             --bundle-id "${BUNDLE_ID}" \
