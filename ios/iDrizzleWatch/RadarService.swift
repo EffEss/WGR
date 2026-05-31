@@ -26,7 +26,8 @@ final class RadarService {
 		"USA": "🌎 USA", "NORTHWEST": "Northwest", "NORTHCENTRAL": "North Central",
 		"NORTHEAST": "Northeast", "SOUTHWEST": "Southwest", "SOUTHCENTRAL": "South Central",
 		"SOUTHEAST": "Southeast",
-		"NORCAL": "N. California", "CENTRALCAL": "C. California", "SOCAL": "S. California"
+		"NORCAL": "N. California", "CENTRALCAL": "C. California", "SOCAL": "S. California",
+		"TXW": "Texas West", "TXE": "Texas East", "TXS": "Texas South"
 	]
 
 	/// Direct state-name map from radar-map.html.
@@ -72,6 +73,12 @@ final class RadarService {
 		"TX":"SOUTHCENTRAL", "OK":"SOUTHCENTRAL", "AR":"SOUTHCENTRAL", "LA":"SOUTHCENTRAL"
 	]
 
+	/// Same redirect behavior as radar-map.html handleStateClick.
+	static let stateRedirect: [String: String] = [
+		"CT": "NY", "DE": "VA", "MA": "NY", "MD": "VA", "ME": "NH",
+		"NC": "SC", "NJ": "PA", "RI": "NY", "VT": "NY", "WV": "VA"
+	]
+
 	/// Region -> states for hierarchical browsing.
 	static let regionStates: [String: [String]] = {
 		var grouped: [String: [String]] = [:]
@@ -85,22 +92,42 @@ final class RadarService {
 	}()
 
 	static func displayName(for region: String) -> String {
-		regionDisplay[region] ?? region
+		regionDisplay[region] ?? stateNames[region] ?? region
 	}
 
 	static func displayState(_ code: String) -> String {
-		stateNames[code] ?? code
+		displayName(for: code)
 	}
 
 	static func navigationRegion(forState state: String) -> String? {
 		stateNavigationRegion[state]
 	}
 
+	static func navigationRegion(forKey key: String) -> String? {
+		if regionKeys.contains(key) { return key }
+		if ["NORCAL", "CENTRALCAL", "SOCAL"].contains(key) { return "SOUTHWEST" }
+		if ["TXW", "TXE", "TXS"].contains(key) { return "SOUTHCENTRAL" }
+		return stateNavigationRegion[key]
+	}
+
 	/// Returns the key that should actually be downloaded for a chosen state.
-	/// If state gif is missing, this falls back to its containing region as in HTML.
+	/// Mirrors HTML handleStateClick order: direct/sub-region -> redirect -> fallback region.
 	static func resolvedKey(forState state: String) -> String {
 		if regionFiles[state] != nil { return state }
+		if let redir = stateRedirect[state] { return redir }
 		return stateFallbackRegion[state] ?? navigationRegion(forState: state) ?? "USA"
+	}
+
+	static func resolvedLabel(forState state: String) -> String {
+		if let redir = stateRedirect[state] {
+			let target = displayName(for: redir)
+			return "\(displayState(state)) → \(target)"
+		}
+		let key = resolvedKey(forState: state)
+		if key != state {
+			return "\(displayState(state)) → \(displayName(for: key))"
+		}
+		return displayState(state)
 	}
 
 	// MARK: - Cache directory

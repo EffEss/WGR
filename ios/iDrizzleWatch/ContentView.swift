@@ -9,6 +9,7 @@ struct ContentView: View {
 	}
 
 	private let service = RadarService.shared
+	private let hitMapper = RadarHitMapper.shared
 	private let primaryRegions = RadarService.regionKeys.filter { $0 != "USA" }
 
 	@State private var selection: Selection = .usa
@@ -210,7 +211,7 @@ struct ContentView: View {
 							.onEnded { value in
 								let x = max(0, min(1, value.location.x / max(1, geo.size.width)))
 								let y = max(0, min(1, value.location.y / max(1, geo.size.height)))
-								selectRegion(regionForTap(x: x, y: y))
+								handleMapTap(x: x, y: y)
 							}
 					)
 
@@ -236,15 +237,33 @@ struct ContentView: View {
 		.clipShape(RoundedRectangle(cornerRadius: 8))
 	}
 
-	private func regionForTap(x: CGFloat, y: CGFloat) -> String {
-		if y < 0.5 {
-			if x < 0.34 { return "NORTHWEST" }
-			if x < 0.67 { return "NORTHCENTRAL" }
-			return "NORTHEAST"
+	private func handleMapTap(x: CGFloat, y: CGFloat) {
+		switch selection {
+		case .usa:
+			if let key = hitMapper.stateForTap(normalizedX: x, normalizedY: y, mode: .usa),
+			   let region = RadarService.navigationRegion(forKey: key),
+			   primaryRegions.contains(region) {
+				selectRegion(region)
+			}
+		case .region(let region):
+			let allowed = Set(RadarService.regionStates[region] ?? [])
+			if let key = hitMapper.stateForTap(normalizedX: x, normalizedY: y, mode: .region(region), allowedStates: allowed) {
+				if RadarService.stateNames[key] != nil {
+					selectState(key)
+				} else if let navRegion = RadarService.navigationRegion(forKey: key), primaryRegions.contains(navRegion) {
+					selectRegion(navRegion)
+				}
+			}
+		case .state(let code):
+			let mode = RadarHitMapper.ProjectionMode.state(RadarService.resolvedKey(forState: code))
+			if let key = hitMapper.stateForTap(normalizedX: x, normalizedY: y, mode: mode) {
+				if RadarService.stateNames[key] != nil {
+					selectState(key)
+				} else if let navRegion = RadarService.navigationRegion(forKey: key), primaryRegions.contains(navRegion) {
+					selectRegion(navRegion)
+				}
+			}
 		}
-		if x < 0.34 { return "SOUTHWEST" }
-		if x < 0.67 { return "SOUTHCENTRAL" }
-		return "SOUTHEAST"
 	}
 
 	private func selectUSA() {
@@ -280,12 +299,7 @@ struct ContentView: View {
 		case .region(let key):
 			return RadarService.displayName(for: key)
 		case .state(let code):
-			let key = RadarService.resolvedKey(forState: code)
-			let state = RadarService.displayState(code)
-			if key != code {
-				return "\(state) → \(RadarService.displayName(for: key))"
-			}
-			return state
+			return RadarService.resolvedLabel(forState: code)
 		}
 	}
 
