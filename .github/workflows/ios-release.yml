@@ -24,6 +24,13 @@ jobs:
           cp Assets/iDrizzle.png ios/iDrizzle/AppIcon.png
           cp Assets/iDrizzle.png ios/iDrizzleWatch/AppIcon.png
 
+      # Both Xcode projects reference ios/Local.xcconfig as a base config; it is
+      # gitignored, so recreate it on the runner with the Team ID from secrets.
+      - name: Prepare Local.xcconfig
+        run: |
+          cp ios/Local.xcconfig.template ios/Local.xcconfig
+          /usr/bin/sed -i '' "s/^DRIZZLE_DEVELOPMENT_TEAM =.*/DRIZZLE_DEVELOPMENT_TEAM = ${TEAM_ID}/" ios/Local.xcconfig
+
       # Write the App Store Connect API key (.p8) from the base64 secret so
       # xcodebuild can authenticate for both signing and upload.
       - name: Write App Store Connect API key
