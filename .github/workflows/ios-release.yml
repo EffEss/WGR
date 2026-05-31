@@ -91,14 +91,20 @@ jobs:
 
       - name: Upload iDrizzleWatch to App Store Connect
         run: |
-          xcodebuild -exportArchive \
-            -archivePath build/iDrizzleWatch.xcarchive \
-            -exportOptionsPlist ios/ExportOptionsWatch.plist \
-            -exportPath build/iDrizzleWatch-export \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "${ASC_KEY_ID}" \
-            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+          # Standalone watchOS archives trip Xcode's IDEDistribution
+          # ("Unknown Distribution Error" / method not offering app-store-connect),
+          # so package the already distribution-signed .app into an IPA and upload
+          # it directly with altool instead of using -exportArchive.
+          APP_PATH="build/iDrizzleWatch.xcarchive/Products/Applications/iDrizzleWatch.app"
+          rm -rf build/iDrizzleWatch-ipa
+          mkdir -p build/iDrizzleWatch-ipa/Payload
+          cp -R "${APP_PATH}" build/iDrizzleWatch-ipa/Payload/
+          (cd build/iDrizzleWatch-ipa && /usr/bin/zip -r -y ../iDrizzleWatch.ipa Payload >/dev/null)
+          xcrun altool --upload-app \
+            --type ios \
+            --file build/iDrizzleWatch.ipa \
+            --apiKey "${ASC_KEY_ID}" \
+            --apiIssuer "${ASC_ISSUER_ID}"
 
       - name: Clean up API key
         if: always()
