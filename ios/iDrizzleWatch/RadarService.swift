@@ -43,6 +43,7 @@ final class RadarService {
 	]
 
 	/// Fallback map from radar-map.html (plus DC -> NORTHEAST).
+	/// Used only when loading a state that does not have its own GIF.
 	static let stateFallbackRegion: [String: String] = [
 		"ME":"NORTHEAST", "VT":"NORTHEAST", "NH":"NORTHEAST", "MA":"NORTHEAST", "CT":"NORTHEAST", "RI":"NORTHEAST",
 		"NY":"NORTHEAST", "NJ":"NORTHEAST", "PA":"NORTHEAST", "DE":"NORTHEAST", "MD":"NORTHEAST", "DC":"NORTHEAST",
@@ -57,10 +58,24 @@ final class RadarService {
 		"NV":"SOUTHWEST", "UT":"SOUTHWEST", "CO":"SOUTHWEST", "AZ":"SOUTHWEST", "NM":"SOUTHWEST"
 	]
 
+	/// Region membership for navigation (USA -> region -> state), including direct-state GIF states.
+	static let stateNavigationRegion: [String: String] = [
+		"WA":"NORTHWEST", "OR":"NORTHWEST", "ID":"NORTHWEST", "MT":"NORTHWEST", "WY":"NORTHWEST",
+		"ND":"NORTHCENTRAL", "SD":"NORTHCENTRAL", "NE":"NORTHCENTRAL", "KS":"NORTHCENTRAL", "MN":"NORTHCENTRAL",
+		"IA":"NORTHCENTRAL", "MO":"NORTHCENTRAL", "WI":"NORTHCENTRAL", "IL":"NORTHCENTRAL", "MI":"NORTHCENTRAL",
+		"IN":"NORTHCENTRAL", "OH":"NORTHCENTRAL",
+		"ME":"NORTHEAST", "VT":"NORTHEAST", "NH":"NORTHEAST", "MA":"NORTHEAST", "RI":"NORTHEAST", "CT":"NORTHEAST",
+		"NY":"NORTHEAST", "PA":"NORTHEAST", "NJ":"NORTHEAST", "DE":"NORTHEAST", "MD":"NORTHEAST", "DC":"NORTHEAST",
+		"VA":"SOUTHEAST", "WV":"SOUTHEAST", "NC":"SOUTHEAST", "SC":"SOUTHEAST", "GA":"SOUTHEAST", "FL":"SOUTHEAST",
+		"KY":"SOUTHEAST", "TN":"SOUTHEAST", "AL":"SOUTHEAST", "MS":"SOUTHEAST",
+		"AZ":"SOUTHWEST", "NM":"SOUTHWEST", "CO":"SOUTHWEST", "UT":"SOUTHWEST", "NV":"SOUTHWEST", "CA":"SOUTHWEST",
+		"TX":"SOUTHCENTRAL", "OK":"SOUTHCENTRAL", "AR":"SOUTHCENTRAL", "LA":"SOUTHCENTRAL"
+	]
+
 	/// Region -> states for hierarchical browsing.
 	static let regionStates: [String: [String]] = {
 		var grouped: [String: [String]] = [:]
-		for (state, region) in stateFallbackRegion {
+		for (state, region) in stateNavigationRegion {
 			grouped[region, default: []].append(state)
 		}
 		for key in grouped.keys {
@@ -68,9 +83,6 @@ final class RadarService {
 		}
 		return grouped
 	}()
-
-	/// All states sorted for the global state list.
-	static let allStates: [String] = stateNames.keys.sorted { displayState($0) < displayState($1) }
 
 	static func displayName(for region: String) -> String {
 		regionDisplay[region] ?? region
@@ -80,11 +92,15 @@ final class RadarService {
 		stateNames[code] ?? code
 	}
 
+	static func navigationRegion(forState state: String) -> String? {
+		stateNavigationRegion[state]
+	}
+
 	/// Returns the key that should actually be downloaded for a chosen state.
 	/// If state gif is missing, this falls back to its containing region as in HTML.
 	static func resolvedKey(forState state: String) -> String {
 		if regionFiles[state] != nil { return state }
-		return stateFallbackRegion[state] ?? "USA"
+		return stateFallbackRegion[state] ?? navigationRegion(forState: state) ?? "USA"
 	}
 
 	// MARK: - Cache directory

@@ -111,30 +111,36 @@ struct ContentView: View {
 				}
 
 				Section(statesSectionTitle) {
-					ForEach(statesForCurrentLevel, id: \.self) { code in
-						Button {
-							selectState(code)
-							showingRegionSelector = false
-						} label: {
-							HStack {
-								VStack(alignment: .leading, spacing: 2) {
-									Text(RadarService.displayState(code))
-										.font(.headline)
-									if let fb = stateFallbackLabel(code) {
-										Text(fb)
-											.font(.caption2)
-											.foregroundStyle(.secondary)
+					if statesForCurrentLevel.isEmpty {
+						Text("Choose a region above, then pick a state.")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					} else {
+						ForEach(statesForCurrentLevel, id: \.self) { code in
+							Button {
+								selectState(code)
+								showingRegionSelector = false
+							} label: {
+								HStack {
+									VStack(alignment: .leading, spacing: 2) {
+										Text(RadarService.displayState(code))
+											.font(.headline)
+										if let fb = stateFallbackLabel(code) {
+											Text(fb)
+												.font(.caption2)
+												.foregroundStyle(.secondary)
+										}
+									}
+									Spacer()
+									if selection == .state(code) {
+										Image(systemName: "checkmark")
+											.foregroundStyle(.blue)
 									}
 								}
-								Spacer()
-								if selection == .state(code) {
-									Image(systemName: "checkmark")
-										.foregroundStyle(.blue)
-								}
+								.padding(.vertical, 6)
 							}
-							.padding(.vertical, 6)
+							.buttonStyle(.plain)
 						}
-						.buttonStyle(.plain)
 					}
 				}
 			}
@@ -162,7 +168,7 @@ struct ContentView: View {
 		if let region = focusedRegion {
 			return "States in \(RadarService.displayName(for: region))"
 		}
-		return "States"
+		return "Select a region to browse states"
 	}
 
 	private var focusedRegion: String? {
@@ -170,18 +176,16 @@ struct ContentView: View {
 		case .region(let region):
 			return region
 		case .state(let state):
-			let fallback = RadarService.stateFallbackRegion[state]
-			return primaryRegions.contains(fallback ?? "") ? fallback : nil
+			let navRegion = RadarService.navigationRegion(forState: state)
+			return primaryRegions.contains(navRegion ?? "") ? navRegion : nil
 		case .usa:
 			return nil
 		}
 	}
 
 	private var statesForCurrentLevel: [String] {
-		if let region = focusedRegion {
-			return RadarService.regionStates[region] ?? []
-		}
-		return RadarService.allStates
+		guard let region = focusedRegion else { return [] }
+		return RadarService.regionStates[region] ?? []
 	}
 
 	private func stateFallbackLabel(_ state: String) -> String? {
