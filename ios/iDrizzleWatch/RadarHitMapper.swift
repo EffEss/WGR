@@ -131,12 +131,14 @@ final class RadarHitMapper {
 				return shape.code
 			}
 		}
-		return nil
+
+		// Fallback for tiny/complex polygons on watch touch targets:
+		// select the nearest state center in this projection if reasonably close.
+		return nearestStateForTap(point: point, mode: mode, allowedStates: allowedStates)
 	}
 
 	private func californiaSubregion(point: CGPoint, polygons: [StatePolygon]) -> String {
 		guard let box = bounds(of: polygons) else { return "CA" }
-		let rx = (point.x - box.minX) / max(1, box.width)
 		let ry = (point.y - box.minY) / max(1, box.height)
 		if ry > 0.60 { return "NORCAL" }
 		if ry > 0.30 { return "CENTRALCAL" }
@@ -150,6 +152,55 @@ final class RadarHitMapper {
 		if ry < 0.35 { return "TXS" }
 		if rx < 0.50 { return "TXW" }
 		return "TXE"
+	}
+
+	private func nearestStateForTap(point: CGPoint,
+									mode: ProjectionMode,
+									allowedStates: Set<String>?) -> String? {
+		var best: (code: String, distance: CGFloat)?
+
+		for shape in shapes {
+			if let allowedStates, !allowedStates.contains(shape.code) { continue }
+
+			let centerLng = shape.bounds.centerLng
+			let centerLat = shape.bounds.centerLat
+			let projectedCenter: CGPoint
+
+			switch mode {
+			case .usa:
+				projectedCenter = projectUSA(lng: centerLng, lat: centerLat)
+			case .region(let region):
+				projectedCenter = projectRegion(lng: centerLng, lat: centerLat, region: region)
+			case .state(let stateKey):
+				projectedCenter = projectState(lng: centerLng, lat: centerLat, stateKey: stateKey, bounds: shape.bounds)
+			}
+
+			let dx = point.x - projectedCenter.x
+			let dy = point.y - projectedCenter.y
+			let dist = sqrt(dx * dx + dy * dy)
+
+			if let current = best {
+				if dist < current.distance { best = (shape.code, dist) }
+			} else {
+				best = (shape.code, dist)
+			}
+		}
+
+		guard let best else { return nil }
+
+		// Keep fallback conservative to avoid selecting far-away states.
+		if best.distance > 46 { return nil }
+
+		if best.code == "CA", let shape = shapes.first(where: { $0.code == "CA" }) {
+			let projected = projectedPolygons(for: shape, mode: mode)
+			return californiaSubregion(point: point, polygons: projected)
+		}
+		if best.code == "TX", let shape = shapes.first(where: { $0.code == "TX" }) {
+			let projected = projectedPolygons(for: shape, mode: mode)
+			return texasSubregion(point: point, polygons: projected)
+		}
+		if let redir = stateRedirect[best.code] { return redir }
+		return best.code
 	}
 
 	private func bounds(of polygons: [StatePolygon]) -> CGRect? {
