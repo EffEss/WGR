@@ -89,6 +89,7 @@ Add these under *Settings → Secrets and variables → Actions → New reposito
 | `ASC_API_KEY_ID` | The API **Key ID** from the App Store Connect API keys list. |
 | `ASC_API_ISSUER_ID` | The **Issuer ID** (UUID) shown above the API keys list. |
 | `ASC_API_KEY_P8_BASE64` | The downloaded `.p8`, base64-encoded. |
+| `ASC_WATCH_APPLE_ID` | The numeric **Apple ID** (ADAM ID) of the standalone *iDrizzleWatch* App Store Connect record. Open the watch app in App Store Connect → **App Information** → *Apple ID*. Needed because the watch IPA is uploaded with `altool --upload-package`, which requires the app's Apple ID explicitly. |
 
 To produce the base64 value, run on your **Mac**:
 
@@ -98,7 +99,7 @@ base64 -i ~/Downloads/AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 That copies the encoded key to the clipboard so you can paste it into the secret.
 
-> The GitHub Action authenticates to Apple **solely** through these four secrets.
+> The GitHub Action authenticates to Apple **solely** through these secrets.
 > It does not use Xcode's GitHub connection or your Apple ID login — the CI runner
 > is a clean macOS VM that knows nothing about your accounts beyond these values.
 

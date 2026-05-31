@@ -16,6 +16,10 @@ jobs:
       TEAM_ID: ${{ secrets.DRIZZLE_DEVELOPMENT_TEAM }}
       ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+      # Numeric Apple ID (ADAM ID) of the standalone iDrizzleWatch App Store
+      # Connect record. altool --upload-package needs it because a watch-only
+      # bundle cannot be classified by --upload-app's plist inference.
+      WATCH_APPLE_ID: ${{ secrets.ASC_WATCH_APPLE_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -124,9 +128,24 @@ jobs:
           mkdir -p build/iDrizzleWatch-ipa/Payload
           cp -R "${APP_PATH}" build/iDrizzleWatch-ipa/Payload/
           (cd build/iDrizzleWatch-ipa && /usr/bin/zip -r -y ../iDrizzleWatch.ipa Payload >/dev/null)
-          xcrun altool --upload-app \
+
+          # altool --upload-app infers the platform from the bundle, and a
+          # watch-only bundle (CFBundleSupportedPlatforms=[WatchOS]) is not one
+          # of the inferable values {macos|ios|appletvos|visionos}, so it fails
+          # with "Cannot determine the 'platform'". --upload-package takes the
+          # platform and metadata explicitly. The standalone watch app lives
+          # under the iOS platform in App Store Connect, so --type ios. (Use
+          # --type, not --platform: --type is the flag this runner's altool
+          # actually accepts, as proven by the earlier --upload-app --type ios run.)
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${APP_PATH}/Info.plist")
+          BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${APP_PATH}/Info.plist")
+          SHORT_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PATH}/Info.plist")
+          xcrun altool --upload-package build/iDrizzleWatch.ipa \
             --type ios \
-            --file build/iDrizzleWatch.ipa \
+            --apple-id "${WATCH_APPLE_ID}" \
+            --bundle-id "${BUNDLE_ID}" \
+            --bundle-version "${BUNDLE_VERSION}" \
+            --bundle-short-version-string "${SHORT_VERSION}" \
             --apiKey "${ASC_KEY_ID}" \
             --apiIssuer "${ASC_ISSUER_ID}"
 
