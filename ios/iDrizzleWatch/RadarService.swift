@@ -18,7 +18,7 @@ final class RadarService {
 		"USA": "inmasirus_.gif"
 	]
 
-	/// Regions surfaced in the watch picker (same primary set as the phone bottom bar).
+	/// Regions surfaced in the watch hierarchy (same primary set as the phone bottom bar).
 	static let regionKeys = ["USA", "NORTHWEST", "NORTHCENTRAL", "NORTHEAST",
 							 "SOUTHWEST", "SOUTHCENTRAL", "SOUTHEAST"]
 
@@ -29,8 +29,62 @@ final class RadarService {
 		"NORCAL": "N. California", "CENTRALCAL": "C. California", "SOCAL": "S. California"
 	]
 
+	/// Direct state-name map from radar-map.html.
+	static let stateNames: [String: String] = [
+		"AL":"Alabama", "AZ":"Arizona", "AR":"Arkansas", "CA":"California", "CO":"Colorado",
+		"CT":"Connecticut", "DE":"Delaware", "FL":"Florida", "GA":"Georgia",
+		"ID":"Idaho", "IL":"Illinois", "IN":"Indiana", "IA":"Iowa", "KS":"Kansas", "KY":"Kentucky",
+		"LA":"Louisiana", "ME":"Maine", "MD":"Maryland", "MA":"Massachusetts", "MI":"Michigan", "MN":"Minnesota",
+		"MS":"Mississippi", "MO":"Missouri", "MT":"Montana", "NE":"Nebraska", "NV":"Nevada", "NH":"New Hampshire",
+		"NJ":"New Jersey", "NM":"New Mexico", "NY":"New York", "NC":"North Carolina", "ND":"North Dakota",
+		"OH":"Ohio", "OK":"Oklahoma", "OR":"Oregon", "PA":"Pennsylvania", "RI":"Rhode Island", "SC":"South Carolina",
+		"SD":"South Dakota", "TN":"Tennessee", "TX":"Texas", "UT":"Utah", "VT":"Vermont", "VA":"Virginia",
+		"WA":"Washington", "WV":"West Virginia", "WI":"Wisconsin", "WY":"Wyoming", "DC":"District of Columbia"
+	]
+
+	/// Fallback map from radar-map.html (plus DC -> NORTHEAST).
+	static let stateFallbackRegion: [String: String] = [
+		"ME":"NORTHEAST", "VT":"NORTHEAST", "NH":"NORTHEAST", "MA":"NORTHEAST", "CT":"NORTHEAST", "RI":"NORTHEAST",
+		"NY":"NORTHEAST", "NJ":"NORTHEAST", "PA":"NORTHEAST", "DE":"NORTHEAST", "MD":"NORTHEAST", "DC":"NORTHEAST",
+		"WA":"NORTHWEST", "OR":"NORTHWEST", "ID":"NORTHWEST", "MT":"NORTHWEST", "WY":"NORTHWEST",
+		"MN":"NORTHCENTRAL", "WI":"NORTHCENTRAL", "MI":"NORTHCENTRAL", "ND":"NORTHCENTRAL", "SD":"NORTHCENTRAL",
+		"NE":"NORTHCENTRAL", "IA":"NORTHCENTRAL",
+		"VA":"SOUTHEAST", "WV":"SOUTHEAST", "NC":"SOUTHEAST", "SC":"SOUTHEAST", "GA":"SOUTHEAST",
+		"FL":"SOUTHEAST", "KY":"SOUTHEAST", "TN":"SOUTHEAST",
+		"TX":"SOUTHCENTRAL", "OK":"SOUTHCENTRAL", "AR":"SOUTHCENTRAL", "LA":"SOUTHCENTRAL", "MO":"SOUTHCENTRAL",
+		"KS":"SOUTHCENTRAL", "MS":"SOUTHCENTRAL", "AL":"SOUTHCENTRAL",
+		"CA":"SOCAL",
+		"NV":"SOUTHWEST", "UT":"SOUTHWEST", "CO":"SOUTHWEST", "AZ":"SOUTHWEST", "NM":"SOUTHWEST"
+	]
+
+	/// Region -> states for hierarchical browsing.
+	static let regionStates: [String: [String]] = {
+		var grouped: [String: [String]] = [:]
+		for (state, region) in stateFallbackRegion {
+			grouped[region, default: []].append(state)
+		}
+		for key in grouped.keys {
+			grouped[key]?.sort { displayState($0) < displayState($1) }
+		}
+		return grouped
+	}()
+
+	/// All states sorted for the global state list.
+	static let allStates: [String] = stateNames.keys.sorted { displayState($0) < displayState($1) }
+
 	static func displayName(for region: String) -> String {
 		regionDisplay[region] ?? region
+	}
+
+	static func displayState(_ code: String) -> String {
+		stateNames[code] ?? code
+	}
+
+	/// Returns the key that should actually be downloaded for a chosen state.
+	/// If state gif is missing, this falls back to its containing region as in HTML.
+	static func resolvedKey(forState state: String) -> String {
+		if regionFiles[state] != nil { return state }
+		return stateFallbackRegion[state] ?? "USA"
 	}
 
 	// MARK: - Cache directory
@@ -58,7 +112,7 @@ final class RadarService {
 		case responseTooSmall
 	}
 
-	/// Downloads the radar GIF for a region, caches it on disk, and returns the local file URL.
+	/// Downloads the radar GIF for a region/state key, caches it on disk, and returns the local file URL.
 	func fetchRadarGif(region: String,
 					   completion: @escaping (Result<URL, Error>) -> Void) {
 		// Sanitize region the same way the iOS bridge does.
