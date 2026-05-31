@@ -79,7 +79,7 @@ jobs:
           xcodebuild -project ios/iDrizzleWatch.xcodeproj \
             -scheme iDrizzleWatch \
             -configuration Release \
-            -sdk watchos \
+            -destination 'generic/platform=watchOS' \
             -archivePath build/iDrizzleWatch.xcarchive \
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \

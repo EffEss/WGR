@@ -42,7 +42,7 @@ jobs:
           xcodebuild -project ios/iDrizzleWatch.xcodeproj \
             -scheme iDrizzleWatch \
             -configuration Release \
-            -sdk watchos \
+            -destination 'generic/platform=watchOS' \
             -archivePath build/iDrizzleWatch.xcarchive \
             DRIZZLE_DEVELOPMENT_TEAM="" \
             CODE_SIGN_IDENTITY="-" \
