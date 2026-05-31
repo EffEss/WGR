@@ -332,10 +332,13 @@ final class RadarHitMapper {
 			guard !code.isEmpty else { continue }
 
 			let polygons: [StatePolygon]
-			if type == "Polygon", let coords = geometry["coordinates"] as? [[Any]] {
-				polygons = [makePolygon(from: coords)]
-			} else if type == "MultiPolygon", let coords = geometry["coordinates"] as? [[[Any]]] {
-				polygons = coords.map { makePolygon(from: $0) }
+			if type == "Polygon", let coords = geometry["coordinates"] as? [Any] {
+				guard let poly = makePolygon(from: coords) else { continue }
+				polygons = [poly]
+			} else if type == "MultiPolygon", let coords = geometry["coordinates"] as? [Any] {
+				let polys = coords.compactMap { makePolygon(from: $0) }
+				guard !polys.isEmpty else { continue }
+				polygons = polys
 			} else {
 				continue
 			}
@@ -366,18 +369,29 @@ final class RadarHitMapper {
 		return result
 	}
 
-	private func makePolygon(from rings: [[Any]]) -> StatePolygon {
-		guard !rings.isEmpty else { return StatePolygon(outer: [], holes: []) }
+	private func makePolygon(from raw: Any) -> StatePolygon? {
+		guard let rings = raw as? [Any], !rings.isEmpty else { return nil }
 
-		func convert(_ ring: [Any]) -> [CGPoint] {
-			ring.compactMap { item in
-				guard let pair = item as? [Double], pair.count >= 2 else { return nil }
-				return CGPoint(x: pair[0], y: pair[1])
+		func asDouble(_ value: Any) -> Double? {
+			if let d = value as? Double { return d }
+			if let i = value as? Int { return Double(i) }
+			if let n = value as? NSNumber { return n.doubleValue }
+			return nil
+		}
+
+		func convert(_ ringRaw: Any) -> [CGPoint] {
+			guard let ring = ringRaw as? [Any] else { return [] }
+			return ring.compactMap { item in
+				guard let pair = item as? [Any], pair.count >= 2,
+					  let lng = asDouble(pair[0]),
+					  let lat = asDouble(pair[1]) else { return nil }
+				return CGPoint(x: lng, y: lat)
 			}
 		}
 
 		let outer = convert(rings[0])
-		let holes = rings.dropFirst().map(convert)
+		if outer.count < 3 { return nil }
+		let holes = rings.dropFirst().map(convert).filter { $0.count >= 3 }
 		return StatePolygon(outer: outer, holes: holes)
 	}
 }
