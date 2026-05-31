@@ -197,51 +197,15 @@ iOS/watchOS releases are automated with GitHub Actions
 version tag (e.g. `git tag v2.1.0 && git push origin v2.1.0`) — or running the
 **iOS Release** workflow manually from the Actions tab — archives both
 `iDrizzle` (iOS) and `iDrizzleWatch` (watchOS) with automatic signing and
-uploads them straight to App Store Connect / TestFlight. No certificates or
-provisioning profiles are stored in the repo; Xcode's
-`-allowProvisioningUpdates` creates them in CI using an App Store Connect API
-key.
+uploads them straight to App Store Connect / TestFlight. The two apps ship as
+**separate App Store records** (the watch app is standalone, not embedded).
 
-### One-time setup
+Authentication uses an **App Store Connect API key** stored as encrypted GitHub
+repository secrets — no certificates, profiles, or IDs live in the repo.
 
-`iDrizzle` (iOS/iPadOS) and `iDrizzleWatch` (watchOS) are **two independent,
-standalone apps** — the watch app is not embedded in the iOS app — so each gets
-its **own App Store Connect app record** and its own listing:
-
-1. **Register the bundle IDs** in App Store Connect → *Certificates, Identifiers & Profiles → Identifiers* (click **+ → App IDs → App**, Explicit):
-   - `com.idrizzle.app` (iOS app)
-   - `com.idrizzle.watchapp` (standalone watchOS app)
-2. **Create two app records** in App Store Connect (*My Apps → +*): one named **iDrizzle** bound to `com.idrizzle.app`, and a second named **iDrizzleWatch** bound to `com.idrizzle.watchapp`. Leave the *Apple Watch* screenshot tab on the iOS record empty — the watch app is shipped through its own record, not embedded.
-3. **Create an App Store Connect API key** (*Users and Access → Integrations → App Store Connect API*) with the **App Manager** role and download the `.p8` (you can only download it once).
-
-### Required GitHub repository secrets
-
-Add these under *Settings → Secrets and variables → Actions* (open source = keep
-all secrets here, never in tracked files):
-
-| Secret | What it is |
-| --- | --- |
-| `DRIZZLE_DEVELOPMENT_TEAM` | Your 10-character Apple Developer **Team ID**. |
-| `ASC_API_KEY_ID` | The API **Key ID** from App Store Connect (e.g. `ABC123XYZ9`). |
-| `ASC_API_ISSUER_ID` | The **Issuer ID** (UUID) shown above the API keys list. |
-| `ASC_API_KEY_P8_BASE64` | The downloaded `.p8` file, base64-encoded (`base64 -i AuthKey_XXXX.p8 \| pbcopy` on macOS). |
-
-### App Store Connect metadata fields to fill out
-
-The store listing must be completed once per app in App Store Connect (these are
-not automatable and are required even for a free app):
-
-- **App name** and **subtitle** — `iDrizzle` / `iDrizzleWatch`
-- **Primary category** (Weather) and optional secondary category
-- **Description**, **keywords**, **promotional text**, and **support URL**
-- **Privacy policy URL**
-- **App Privacy** questionnaire (this app collects no user data; radar GIFs are fetched anonymously from AccuWeather)
-- **Age rating** questionnaire
-- **Pricing & Availability** (Free)
-- **Screenshots** for each required device size (6.7"/6.5" iPhone, 12.9" iPad, and Apple Watch) — see [`Assets/screenshots/`](Assets/screenshots)
-- **App icon** (1024×1024, opaque) — `Assets/iDrizzle.png`
-- **Export compliance** answer (uses only standard HTTPS — exempt)
-- **Build** selection (auto-populated by the uploaded TestFlight build)
+**See [`docs/PUBLISHING.md`](docs/PUBLISHING.md)** for the full guide: registering
+bundle IDs, creating the app records, generating the API key, the four required
+GitHub secrets, and the App Store Connect metadata checklist.
 
 ---
 
