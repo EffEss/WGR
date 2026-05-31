@@ -137,7 +137,7 @@ Outputs:
 Play Console requirements (free app still needs these):
 - App signing key (Play App Signing)
 - App content forms (Data safety, content rating, ads, app access)
-- Privacy policy URL
+- Privacy policy URL ([docs/PRIVACY.md](docs/PRIVACY.md))
 - Store listing assets (icon, screenshots, feature graphic)
 - **Short promo/demo video captured from your phone while using the app** (recommended for listing quality)
 
