@@ -90,10 +90,12 @@ Add these under *Settings → Secrets and variables → Actions → New reposito
 | `ASC_API_ISSUER_ID` | The **Issuer ID** (UUID) shown above the API keys list. |
 | `ASC_API_KEY_P8_BASE64` | The downloaded `.p8`, base64-encoded. |
 | `ASC_WATCH_APPLE_ID` | The numeric **Apple ID** (ADAM ID) of the standalone *iDrizzleWatch* App Store Connect record. Open the watch app in App Store Connect → **App Information** → *Apple ID*. Needed because the watch IPA is uploaded with `altool --upload-package`, which requires the app's Apple ID explicitly. |
-| `WATCH_DIST_CERT_P12_BASE64` | Your Apple **Distribution** certificate **and private key** exported from Keychain Access as a `.p12`, then base64-encoded. Required because `xcodebuild` cannot export a standalone watchOS archive to the App Store, so the archive must be distribution-signed manually. See below. |
+| `WATCH_DIST_CERT_P12_BASE64` | Your Apple **Distribution** certificate **and private key** exported as a `.p12`, then base64-encoded. This single certificate signs **both** the iOS and watch apps. Required because CI uses manual signing (automatic signing creates a new distribution certificate on every run and quickly hits Apple's certificate limit). See below. |
 | `WATCH_DIST_CERT_PASSWORD` | The password you set when exporting the `.p12`. |
-| `WATCH_PROVISION_PROFILE_BASE64` | An **App Store** provisioning profile for `com.idrizzle.watchapp` (download the `.mobileprovision` from the Apple Developer site), base64-encoded. It must reference the same distribution certificate as the `.p12` above. |
-| `WATCH_PROVISION_PROFILE_NAME` | The exact **name** of that provisioning profile as shown on the Apple Developer site (used as `PROVISIONING_PROFILE_SPECIFIER`). |
+| `IOS_PROVISION_PROFILE_BASE64` | An **App Store** provisioning profile for `com.idrizzle.app` (download the `.mobileprovision` from the Apple Developer site), base64-encoded. Must reference the same distribution certificate as the `.p12` above. |
+| `IOS_PROVISION_PROFILE_NAME` | The exact **name** of the iOS profile as shown on the Apple Developer site. |
+| `WATCH_PROVISION_PROFILE_BASE64` | An **App Store** provisioning profile for `com.idrizzle.watchapp` (download the `.mobileprovision` from the Apple Developer site), base64-encoded. Must reference the same distribution certificate as the `.p12` above. |
+| `WATCH_PROVISION_PROFILE_NAME` | The exact **name** of the watch profile as shown on the Apple Developer site (used as `PROVISIONING_PROFILE_SPECIFIER`). |
 
 To produce the base64 value, run on your **Mac**:
 
@@ -103,32 +105,38 @@ base64 -i ~/Downloads/AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 That copies the encoded key to the clipboard so you can paste it into the secret.
 
-### Generating the watch distribution certificate and profile
+### Generating the distribution certificate and profiles
 
-The standalone watch app is **manually** distribution-signed in CI (Xcode can't
-export a watch-only archive to the App Store any other way). One-time setup:
+Both apps are **manually** distribution-signed in CI (a clean runner has no
+signing identity, and automatic signing would create a new distribution
+certificate every run until Apple blocks it; the watch app additionally cannot
+be exported to the App Store by `xcodebuild` any other way). One-time setup:
 
-1. In **Keychain Access** (or via the Apple Developer site → *Certificates*),
-   create/obtain an **Apple Distribution** certificate, then export it together
-   with its private key as a `.p12` (set a password). Base64-encode it for
-   `WATCH_DIST_CERT_P12_BASE64` and store the password in
+1. The easiest way to get the **Apple Distribution** certificate with its
+   private key is **Xcode → Settings → Accounts → (your team) → Manage
+   Certificates… → + → Apple Distribution**, then right-click it →
+   **Export Certificate** to save a `.p12` (set a password). Base64-encode it
+   for `WATCH_DIST_CERT_P12_BASE64` and store the password in
    `WATCH_DIST_CERT_PASSWORD`:
 
    ```sh
-   base64 -i ~/Desktop/watch_distribution.p12 | pbcopy
+   base64 -i ~/Desktop/distribution.p12 | pbcopy
    ```
 
-2. On the Apple Developer site → *Profiles*, create an **App Store**
-   provisioning profile for the App ID `com.idrizzle.watchapp`, tied to that
-   distribution certificate. Download the `.mobileprovision`, base64-encode it
-   for `WATCH_PROVISION_PROFILE_BASE64`, and put its exact display name in
-   `WATCH_PROVISION_PROFILE_NAME`:
+2. On the Apple Developer site → *Profiles*, create **two App Store**
+   provisioning profiles tied to that distribution certificate — one for
+   `com.idrizzle.app` and one for `com.idrizzle.watchapp`. Download each
+   `.mobileprovision`, base64-encode it, and record its exact display name:
 
    ```sh
-   base64 -i ~/Downloads/iDrizzleWatch_AppStore.mobileprovision | pbcopy
+   base64 -i ~/Downloads/iDrizzle_AppStore.mobileprovision | pbcopy        # IOS_PROVISION_PROFILE_BASE64
+   base64 -i ~/Downloads/iDrizzleWatch_AppStore.mobileprovision | pbcopy   # WATCH_PROVISION_PROFILE_BASE64
    ```
 
-   > Refresh these two secrets whenever the certificate or profile expires
+   Put the iOS profile name in `IOS_PROVISION_PROFILE_NAME` and the watch
+   profile name in `WATCH_PROVISION_PROFILE_NAME`.
+
+   > Refresh these secrets whenever the certificate or profiles expire
    > (certificates last 1 year, profiles up to 1 year).
 
 > The GitHub Action authenticates to Apple **solely** through these secrets.

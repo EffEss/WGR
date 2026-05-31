@@ -20,11 +20,15 @@ jobs:
       # Connect record. altool --upload-package needs it because a watch-only
       # bundle cannot be classified by --upload-app's plist inference.
       WATCH_APPLE_ID: ${{ secrets.ASC_WATCH_APPLE_ID }}
-      # Manual distribution signing material for the watch app. xcodebuild
-      # cannot export a standalone watchOS archive to the App Store, so the
-      # archive itself must be distribution-signed up front.
-      WATCH_DIST_CERT_P12_BASE64: ${{ secrets.WATCH_DIST_CERT_P12_BASE64 }}
-      WATCH_DIST_CERT_PASSWORD: ${{ secrets.WATCH_DIST_CERT_PASSWORD }}
+      # Manual distribution signing material. The same Apple Distribution
+      # certificate signs both apps; each app has its own App Store profile.
+      # Automatic signing is unusable here: a clean CI runner has no signing
+      # identity, so Xcode tries to mint a brand-new distribution certificate
+      # every run and quickly hits Apple's certificate limit.
+      DIST_CERT_P12_BASE64: ${{ secrets.WATCH_DIST_CERT_P12_BASE64 }}
+      DIST_CERT_PASSWORD: ${{ secrets.WATCH_DIST_CERT_PASSWORD }}
+      IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+      IOS_PROVISION_PROFILE_NAME: ${{ secrets.IOS_PROVISION_PROFILE_NAME }}
       WATCH_PROVISION_PROFILE_BASE64: ${{ secrets.WATCH_PROVISION_PROFILE_BASE64 }}
       WATCH_PROVISION_PROFILE_NAME: ${{ secrets.WATCH_PROVISION_PROFILE_NAME }}
     steps:
@@ -51,35 +55,71 @@ jobs:
           mkdir -p ~/private_keys
           echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 --decode > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
 
-      # Substitute the Team ID into the iOS export options plist.
+      # Import the distribution certificate into a temporary keychain and
+      # install BOTH App Store provisioning profiles (iOS + watch). Manual
+      # signing with a fixed certificate avoids automatic signing's habit of
+      # creating a new distribution certificate on every CI run (which hits
+      # Apple's certificate limit: "Choose a certificate to revoke").
+      - name: Set up distribution signing
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/dist-signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          CERT_PATH="$RUNNER_TEMP/dist_cert.p12"
+
+          echo "${DIST_CERT_P12_BASE64}" | base64 --decode > "${CERT_PATH}"
+
+          security create-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          security set-keychain-settings -lut 21600 "${KEYCHAIN_PATH}"
+          security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
+          security import "${CERT_PATH}" -P "${DIST_CERT_PASSWORD}" \
+            -A -f pkcs12 -k "${KEYCHAIN_PATH}"
+          security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}" >/dev/null
+          # Make the temp keychain searchable alongside the login keychain.
+          security list-keychains -d user -s "${KEYCHAIN_PATH}" $(security list-keychains -d user | tr -d '"')
+
+          # Install both App Store provisioning profiles where Xcode looks.
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${IOS_PROVISION_PROFILE_BASE64}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/iDrizzle_ios.mobileprovision
+          echo "${WATCH_PROVISION_PROFILE_BASE64}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/iDrizzle_watch.mobileprovision
+
+          # Expose the keychain to later steps so archives can unlock it.
+          echo "SIGN_KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> "$GITHUB_ENV"
+          echo "SIGN_KEYCHAIN_PASSWORD=${KEYCHAIN_PASSWORD}" >> "$GITHUB_ENV"
+
+      # Substitute the Team ID and the iOS profile name into the export plist.
       - name: Inject Team ID into export options
         run: |
           /usr/libexec/PlistBuddy -c "Set :teamID ${TEAM_ID}" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.idrizzle.app ${IOS_PROVISION_PROFILE_NAME}" ios/ExportOptions.plist
 
       # ---- iDrizzle (iOS) ----
       - name: Archive iDrizzle (iOS)
         run: |
+          # Manual signing with the supplied distribution cert + App Store
+          # profile. Automatic signing is avoided so CI never tries to create
+          # a new distribution certificate.
+          security unlock-keychain -p "${SIGN_KEYCHAIN_PASSWORD}" "${SIGN_KEYCHAIN_PATH}"
           xcodebuild -project ios/iDrizzle.xcodeproj \
             -scheme iDrizzle \
             -configuration Release \
             -sdk iphoneos \
             -archivePath build/iDrizzle.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            -authenticationKeyID "${ASC_KEY_ID}" \
-            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain ${SIGN_KEYCHAIN_PATH}" \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="${IOS_PROVISION_PROFILE_NAME}" \
             archive
 
       - name: Upload iDrizzle to App Store Connect
         run: |
+          security unlock-keychain -p "${SIGN_KEYCHAIN_PASSWORD}" "${SIGN_KEYCHAIN_PATH}"
           set +e
           OUTPUT=$(xcodebuild -exportArchive \
             -archivePath build/iDrizzle.xcarchive \
             -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath build/iDrizzle-export \
-            -allowProvisioningUpdates \
+            OTHER_CODE_SIGN_FLAGS="--keychain ${SIGN_KEYCHAIN_PATH}" \
             -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             -authenticationKeyID "${ASC_KEY_ID}" \
             -authenticationKeyIssuerID "${ASC_ISSUER_ID}" 2>&1)
@@ -99,35 +139,8 @@ jobs:
       # A standalone watchOS archive cannot be exported to the App Store by
       # xcodebuild -exportArchive (it only offers ad-hoc/enterprise/development
       # methods), so the archive must be DISTRIBUTION-signed up front via manual
-      # signing. Import the distribution certificate into a temporary keychain
-      # and install the App Store provisioning profile.
-      - name: Set up watch distribution signing
-        run: |
-          KEYCHAIN_PATH="$RUNNER_TEMP/watch-signing.keychain-db"
-          KEYCHAIN_PASSWORD=$(uuidgen)
-          CERT_PATH="$RUNNER_TEMP/watch_dist_cert.p12"
-          PROFILE_PATH="$RUNNER_TEMP/watch.mobileprovision"
-
-          echo "${WATCH_DIST_CERT_P12_BASE64}" | base64 --decode > "${CERT_PATH}"
-          echo "${WATCH_PROVISION_PROFILE_BASE64}" | base64 --decode > "${PROFILE_PATH}"
-
-          security create-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
-          security set-keychain-settings -lut 21600 "${KEYCHAIN_PATH}"
-          security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
-          security import "${CERT_PATH}" -P "${WATCH_DIST_CERT_PASSWORD}" \
-            -A -f pkcs12 -k "${KEYCHAIN_PATH}"
-          security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}" >/dev/null
-          # Make the temp keychain searchable alongside the login keychain.
-          security list-keychains -d user -s "${KEYCHAIN_PATH}" $(security list-keychains -d user | tr -d '"')
-
-          # Install the provisioning profile where Xcode looks for it.
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "${PROFILE_PATH}" ~/Library/MobileDevice/Provisioning\ Profiles/
-
-          # Expose the keychain path to later steps so the archive can unlock it.
-          echo "WATCH_KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> "$GITHUB_ENV"
-          echo "WATCH_KEYCHAIN_PASSWORD=${KEYCHAIN_PASSWORD}" >> "$GITHUB_ENV"
-
+      # signing using the shared keychain and the watch App Store profile that
+      # the "Set up distribution signing" step already prepared.
       - name: Archive iDrizzleWatch (watchOS)
         run: |
           # Manual distribution signing: the archive must already carry the
@@ -135,13 +148,13 @@ jobs:
           # archive cannot be re-signed for the store by -exportArchive.
           # -allowProvisioningUpdates is intentionally omitted so xcodebuild
           # uses exactly the supplied profile instead of trying to manage one.
-          security unlock-keychain -p "${WATCH_KEYCHAIN_PASSWORD}" "${WATCH_KEYCHAIN_PATH}"
+          security unlock-keychain -p "${SIGN_KEYCHAIN_PASSWORD}" "${SIGN_KEYCHAIN_PATH}"
           xcodebuild -project ios/iDrizzleWatch.xcodeproj \
             -scheme iDrizzleWatch \
             -configuration Release \
             -destination 'generic/platform=watchOS' \
             -archivePath build/iDrizzleWatch.xcarchive \
-            OTHER_CODE_SIGN_FLAGS="--keychain ${WATCH_KEYCHAIN_PATH}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain ${SIGN_KEYCHAIN_PATH}" \
             DEVELOPMENT_TEAM="${TEAM_ID}" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
