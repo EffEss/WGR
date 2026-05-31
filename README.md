@@ -42,13 +42,13 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 <p align="center">
 <p align="center"><strong>USA</strong></p>
 
-![USA view](drizzle_usa.png)
+![USA view](Assets/screenshots/windows/drizzle_usa.png)
 
 <br />
 
 <p align="center"><strong>State</strong></p>
 
-![State view](drizzle_state.png)
+![State view](Assets/screenshots/windows/drizzle_state.png)
 
 <br />
 

@@ -69,4 +69,5 @@ ios/iDrizzleWatch/AppIcon.png
 ios/Local.xcconfig
 
 # README screenshots (cosmetic only, not needed for builds)
-# drizzle_usa.png, drizzle_state.png, weather.png kept tracked for README rendering
+# Assets/screenshots/windows/drizzle_usa.png, Assets/screenshots/windows/drizzle_state.png,
+# and weather.png are kept tracked for README rendering
