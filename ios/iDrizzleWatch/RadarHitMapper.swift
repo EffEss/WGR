@@ -113,7 +113,12 @@ final class RadarHitMapper {
 					 normalizedY: CGFloat,
 					 mode: ProjectionMode,
 					 allowedStates: Set<String>? = nil) -> String? {
-		let point = CGPoint(x: normalizedX * imageWidth, y: normalizedY * imageHeight)
+		// Projection functions (ported from radar-map.html geoToPixel) place the
+		// origin at the SOUTH edge — latitude increases upward (Leaflet CRS.Simple
+		// [lat, lng] frame). The incoming tap is in screen space where y = 0 is the
+		// TOP, so invert Y to match the projected polygons.
+		let point = CGPoint(x: normalizedX * imageWidth,
+							y: (1 - normalizedY) * imageHeight)
 
 		for shape in shapes {
 			if let allowedStates, !allowedStates.contains(shape.code) { continue }
