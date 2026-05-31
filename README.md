@@ -54,7 +54,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 <p align="center"><strong>Android</strong></p>
 
-![Android view](Assets/android.png)
+![Android view](Assets/screenshots/android/android.png)
 </p>
 
 ## Why
