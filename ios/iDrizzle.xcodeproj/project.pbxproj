@@ -47,7 +47,6 @@
 		A2000002 /* RadarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadarViewController.swift; sourceTree = "<group>"; };
 		A2000003 /* AppSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemeHandler.swift; sourceTree = "<group>"; };
 		A2000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000008 /* AppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon.png; sourceTree = "<group>"; };
 		A2000010 /* iDrizzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iDrizzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000011 /* radar-map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "radar-map.html"; path = "../Assets/radar-map.html"; sourceTree = SOURCE_ROOT; };
@@ -104,7 +103,6 @@
 				A2000003 /* AppSchemeHandler.swift */,
 				A2000004 /* Assets.xcassets */,
 				A2000008 /* AppIcon.png */,
-				A2000007 /* Info.plist */,
 				A2000011 /* radar-map.html */,
 				A2000012 /* us-states.geo.json */,
 				A2000020 /* Local.xcconfig */,
@@ -451,6 +449,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iDrizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -472,6 +471,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "$(DRIZZLE_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iDrizzle/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
