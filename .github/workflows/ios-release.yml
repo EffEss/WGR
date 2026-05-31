@@ -64,14 +64,26 @@ jobs:
 
       - name: Upload iDrizzle to App Store Connect
         run: |
-          xcodebuild -exportArchive \
+          set +e
+          OUTPUT=$(xcodebuild -exportArchive \
             -archivePath build/iDrizzle.xcarchive \
             -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath build/iDrizzle-export \
             -allowProvisioningUpdates \
             -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             -authenticationKeyID "${ASC_KEY_ID}" \
-            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" 2>&1)
+          STATUS=$?
+          echo "${OUTPUT}"
+          if [ ${STATUS} -ne 0 ]; then
+            # Tolerate re-runs where this exact build was already uploaded so the
+            # job can proceed to the watch upload step. Any other failure is fatal.
+            if echo "${OUTPUT}" | grep -q "bundle version must be higher than the previously uploaded version"; then
+              echo "iDrizzle build already uploaded — continuing to watch upload."
+            else
+              exit ${STATUS}
+            fi
+          fi
 
       # ---- iDrizzleWatch (watchOS) ----
       - name: Archive iDrizzleWatch (watchOS)
