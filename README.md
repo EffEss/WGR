@@ -66,7 +66,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 140 KB on Windows, under 215 KB on Android, under 280 KB on iOS, and ~700 KB on Apple Watch.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 185 KB on Windows, under 215 KB on Android, under 280 KB on iOS, and ~700 KB on Apple Watch.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -110,7 +110,7 @@ cmake -B out/build/x64-Release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build out/build/x64-Release
 ```
 
-Output is a single `Drizzle.exe` (~136 KB, with embedded version metadata).
+Output is a single `Drizzle.exe` (~182 KB, with embedded version metadata).
 
 ### Android
 
