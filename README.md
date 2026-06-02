@@ -6,16 +6,16 @@ The best*, smallest weather application ever made.
   <img src="./Assets/appicon_drizzle_1024.png" alt="WGR icon" width="256" />
 </p>
 
-Also available as a ~219 KB Android APK and a ~275 KB iOS app.
+Also available as a ~222 KB Android APK and a ~176 KB iOS download (~445 KB installed).
 
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
 ![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple)
 ![watchOS](https://img.shields.io/badge/watchOS-26%2B-000000?logo=apple)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
-![Size](https://img.shields.io/badge/exe-~136%20KB-green)
-![APK](https://img.shields.io/badge/apk-~214%20KB-green)
-![iOS](https://img.shields.io/badge/ios-~277%20KB-green)
+![Size](https://img.shields.io/badge/exe-~182%20KB-green)
+![APK](https://img.shields.io/badge/apk-~222%20KB-green)
+![iOS](https://img.shields.io/badge/ios-~176%20KB%20download%20(~445%20KB%20installed)-green)
 ![watchOS](https://img.shields.io/badge/watch-~699%20KB-green)
 
 ---
@@ -66,7 +66,7 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ## Why
 
-Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in under 185 KB on Windows, under 215 KB on Android, under 280 KB on iOS, and ~700 KB on Apple Watch.
+Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in ~182 KB on Windows, ~222 KB on Android, ~176 KB download (~445 KB installed) on iOS, and ~700 KB on Apple Watch.
 
 The goal: **how small and self-contained can a useful weather radar viewer be?**
 
@@ -131,7 +131,7 @@ gradle assembleRelease bundleRelease
 ```
 
 Outputs:
-- `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~214 KB)
+- `app/build/outputs/apk/release/Drizzle_v{version}.apk` (~222 KB)
 - `app/build/outputs/bundle/release/Drizzle_v{version}.aab` (upload this to Play Console)
 
 Play Console requirements (free app still needs these):
@@ -240,7 +240,7 @@ Drizzle/
 As of Visual Studio 2026 (MSVC 19.50+), the **static Universal CRT** (`libucrt.lib`) grew significantly — adding ~110 KB to any statically-linked exe compared to VS 2022. If you're chasing the smallest possible binary on Windows 10+:
 
 - **Hybrid CRT linking**: compile with `/MT` (static VC runtime) but swap the static ucrt for the dynamic one: `/NODEFAULTLIB:libucrt.lib ucrt.lib`. This keeps `vcruntime` embedded (no redistributable needed) while using `ucrtbase.dll` that ships with every Windows 10+ install.
-- Combined with `/O1 /GL` + `/LTCG /OPT:REF /OPT:ICF`, this took Drizzle from 241 KB → 132 KB with zero change in functionality or dependencies.
+- Combined with `/O1 /GL` + `/LTCG /OPT:REF /OPT:ICF`, this now lands around ~182 KB with the current full-color embedded icon (still far below typical desktop app sizes).
 - This is safe for any app that already targets Windows 10+ (e.g., anything using WebView2).
 
 ---
