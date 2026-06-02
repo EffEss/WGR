@@ -15,7 +15,7 @@ Also available as a ~222 KB Android APK and a ~176 KB iOS download (~445 KB inst
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~182%20KB-green)
 ![APK](https://img.shields.io/badge/apk-~222%20KB-green)
-![iOS](https://img.shields.io/badge/ios-~176%20KB%20download%20(~445%20KB%20installed)-green)
+![iOS](https://img.shields.io/badge/ios-~176%20KB-green)
 ![watchOS](https://img.shields.io/badge/watch-~699%20KB-green)
 
 ---
