@@ -41,29 +41,29 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ### Screenshots
 
-<p align="center"><strong>Windows</strong></p>
+<p align="center"><strong>Windows</strong>
 
 ![Windows USA view](Assets/screenshots/windows/drizzle_usa.png)
 ![Windows state view](Assets/screenshots/windows/drizzle_state.png)
-
+</p>
 <br />
 
-<p align="center"><strong>Android</strong></p>
+<p align="center"><strong>Android</strong>
 
 ![Android view](Assets/screenshots/android/android.png)
-
+</p>
 <br />
 
-<p align="center"><strong>iOS / iPadOS (iDrizzle)</strong></p>
+<p align="center"><strong>iOS / iPadOS (iDrizzle)</strong>
 
 ![iOS USA view](Assets/screenshots/ios-iphone/USA_landscape_iOS.png)
-
+</p>
 <br />
 
-<p align="center"><strong>Apple Watch (iDrizzleWatch)</strong></p>
+<p align="center"><strong>Apple Watch (iDrizzleWatch)</strong>
 
 ![watchOS USA view](Assets/screenshots/watchos/USA_watchOS.png)
-
+</p>
 ## Why
 
 Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in ~182 KB on Windows, ~222 KB on Android, ~176 KB download (~445 KB installed) on iOS, and ~700 KB on Apple Watch.
