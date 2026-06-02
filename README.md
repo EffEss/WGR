@@ -64,7 +64,8 @@ There is no forecast, no temperature, no hourly breakdown. Just radar. That's it
 
 ![watchOS USA view](Assets/screenshots/watchos/USA_watchOS.png)
 </p>
-## Why
+
+### Why
 
 Most weather apps ship 100+ MB of runtime to show you a web page. Drizzle does the same thing in ~182 KB on Windows, ~222 KB on Android, ~176 KB download (~445 KB installed) on iOS, and ~700 KB on Apple Watch.
 
