@@ -3,7 +3,7 @@
 The best*, smallest weather application ever made.
 
 <p align="center">
-  <img src="./Assets/1024a.png" alt="WGR icon" width="256" />
+  <img src="./Assets/appicon_drizzle_1024.png" alt="WGR icon" width="256" />
 </p>
 
 Also available as a ~219 KB Android APK and a ~275 KB iOS app.

@@ -1,18 +1,21 @@
-"""Build a minimal ICO from pre-optimized PNGs."""
-import struct, io
+"""Build the Windows ICO from the transparent appicon_drizzle master.
 
-sizes = [256, 48, 32, 16]
-files = {
-    256: 'Assets/radar256opt.png',
-    48:  'Assets/radar48opt.png',
-    32:  'Assets/radar32opt.png',
-    16:  'Assets/radar16opt.png',
-}
+Resizes Assets/appicon_drizzle_1024.png (transparent background) in-memory to
+each ICO size. The opaque 1024 variant is intentionally NOT used for Windows,
+and no intermediate per-size PNGs are written or required.
+"""
+import struct, io
+from PIL import Image
+
+# Largest first; ICO stores 256 as width/height byte 0.
+sizes = [256, 48, 32, 24, 16]
+master = Image.open('Assets/appicon_drizzle_1024.png').convert('RGBA')
 png_entries = []
 
 for s in sizes:
-    with open(files[s], 'rb') as f:
-        png_entries.append(f.read())
+    buf = io.BytesIO()
+    master.resize((s, s), Image.LANCZOS).save(buf, format='PNG', optimize=True)
+    png_entries.append(buf.getvalue())
 
 # ICO format: header + directory entries + image data
 num = len(sizes)

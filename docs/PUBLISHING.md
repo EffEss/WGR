@@ -134,7 +134,7 @@ The store listing must be completed for the iOS app record (required even for a 
 - **Age rating** questionnaire
 - **Pricing & Availability** — Free
 - **Screenshots** for each required device size (6.7"/6.5" iPhone, 12.9" iPad, and Apple Watch) — see [`Assets/screenshots/`](../Assets/screenshots)
-- **App icon** (1024×1024, opaque) — `Assets/iDrizzle.png`
+- **App icon** (1024×1024, opaque) — `Assets/appicon_drizzle_1024_opaque.png`
 - **Export compliance** — uses only standard HTTPS, so exempt
 - **Build** selection — auto-populated by the uploaded TestFlight build
 

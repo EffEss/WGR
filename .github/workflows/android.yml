@@ -1,7 +1,7 @@
 name: Android
 on:
   push:
-    paths: ['android/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/1024a.png']
+    paths: ['android/**', 'Assets/radar-map.html', 'Assets/us-states.geo.json', 'Assets/appicon_drizzle_1024.png']
   workflow_dispatch:
 
 jobs:
@@ -25,14 +25,14 @@ jobs:
           cp ../Assets/radar-map.html app/src/main/assets/
           cp ../Assets/us-states.geo.json app/src/main/assets/
 
-      # Generate adaptive icon PNGs from 1024a.png (transparent, for Android)
+      # Generate adaptive icon PNGs from appicon_drizzle_1024.png (transparent, for Android)
       - name: Generate launcher icons
         run: |
           pip install --quiet Pillow
           python -c "
           from PIL import Image
           import os
-          src = Image.open('../Assets/1024a.png').convert('RGBA')
+          src = Image.open('../Assets/appicon_drizzle_1024.png').convert('RGBA')
           for dpi, s in {'xxxhdpi':192,'xxhdpi':144,'xhdpi':96,'hdpi':72,'mdpi':48}.items():
               d = f'app/src/main/res/mipmap-{dpi}'
               os.makedirs(d, exist_ok=True)
