@@ -15,6 +15,7 @@ jobs:
   release:
     runs-on: macos-26
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       TEAM_ID: ${{ secrets.DRIZZLE_DEVELOPMENT_TEAM }}
       ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
