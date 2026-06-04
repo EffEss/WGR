@@ -13,9 +13,9 @@ jobs:
       run:
         working-directory: android
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -41,7 +41,7 @@ jobs:
               src.resize((s,s), Image.LANCZOS).save(f'{d}/ic_launcher_foreground.png')
           "
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - name: Decode Play keystore (optional)
         env:
@@ -50,6 +50,10 @@ jobs:
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/release-keystore.jks
           fi
+
+      - name: Run Android unit tests
+        run: |
+          gradle test --no-daemon
 
       - name: Build Android artifacts
         env:
@@ -70,7 +74,7 @@ jobs:
             mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Drizzle_v${VERSION}.aab
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: drizzle-android
           path: |
