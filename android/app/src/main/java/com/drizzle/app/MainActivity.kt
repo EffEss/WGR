@@ -2,6 +2,7 @@ package com.drizzle.app
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Looper
 import android.webkit.*
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,8 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -152,8 +155,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 "CLEARCACHE" -> {
-                    clearAllAppCaches()
-                    postToWebView("""{"type":"cacheCleared"}""")
+                    scope.launch {
+                        clearAllAppCaches()
+                        postToWebView("""{"type":"cacheCleared"}""")
+                        postCacheSize()
+                    }
                 }
                 "CACHESIZE" -> {
                     val files = radarDir.listFiles()?.filter { it.extension == "gif" } ?: emptyList()
@@ -198,17 +204,36 @@ class MainActivity : ComponentActivity() {
         // Radar file cache used by the custom bridge
         clearRadarGifs()
 
-        // WebView runtime caches/storage
-        webView.clearCache(true)
-        webView.clearHistory()
-        webView.clearFormData()
-        WebStorage.getInstance().deleteAllData()
-        CookieManager.getInstance().removeAllCookies(null)
-        CookieManager.getInstance().flush()
+        // WebView runtime caches/storage must be cleared on main thread.
+        runWebViewClearOnMainThread()
 
         // App cache directory (best-effort)
         cacheDir.deleteRecursively()
         cacheDir.mkdirs()
+    }
+
+    private fun runWebViewClearOnMainThread() {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            webView.clearCache(true)
+            webView.clearHistory()
+            webView.clearFormData()
+            WebStorage.getInstance().deleteAllData()
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+            return
+        }
+
+        val latch = CountDownLatch(1)
+        runOnUiThread {
+            webView.clearCache(true)
+            webView.clearHistory()
+            webView.clearFormData()
+            WebStorage.getInstance().deleteAllData()
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+            latch.countDown()
+        }
+        latch.await(2, TimeUnit.SECONDS)
     }
 
     private fun pruneExpiredRadarGifs(nowMs: Long = System.currentTimeMillis()) {
@@ -226,6 +251,12 @@ class MainActivity : ComponentActivity() {
 
     private fun clearRadarGifs() {
         radarDir.listFiles()?.forEach { it.delete() }
+    }
+
+    private fun postCacheSize() {
+        val files = radarDir.listFiles()?.filter { it.extension == "gif" } ?: emptyList()
+        val bytes = files.sumOf { it.length() }
+        postToWebView("""{"type":"cacheSize","bytes":$bytes,"count":${files.size}}""")
     }
 
     private fun postToWebView(json: String) {
