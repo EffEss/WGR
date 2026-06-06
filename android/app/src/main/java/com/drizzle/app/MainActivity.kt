@@ -55,9 +55,6 @@ class MainActivity : ComponentActivity() {
         }
         setContentView(webView)
 
-        // Keep storage tight on launch: retain only one latest GIF.
-        pruneRadarCacheToLatest(keepRegion = null)
-
         // Serve bundled assets from assets/ via https://app.local/
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("app.local")
@@ -100,10 +97,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        val now = System.currentTimeMillis()
+
         if (backgroundedAtMs > 0L) {
-            val elapsed = System.currentTimeMillis() - backgroundedAtMs
+            val elapsed = now - backgroundedAtMs
             if (elapsed >= STALE_BACKGROUND_MS) {
-                clearAllAppCaches()
+                pruneExpiredRadarGifs(now)
                 // Force refresh of whatever region/state is currently selected.
                 webView.post {
                     webView.evaluateJavascript(
@@ -167,12 +166,24 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun downloadRadarGif(region: String, url: String) {
         try {
+            val now = System.currentTimeMillis()
+            pruneExpiredRadarGifs(now)
+
             val dest = File(radarDir, "$region.gif")
+            // Reuse only if this file is still fresh (<= 5 minutes old).
+            if (isGifFresh(dest, now) && dest.length() > 5120) {
+                postToWebView("""{"type":"radarReady","region":"$region","file":"$region.gif"}""")
+                return
+            }
+
+            if (dest.exists()) {
+                dest.delete()
+            }
+
             URL(url).openStream().use { input ->
                 dest.outputStream().use { output -> input.copyTo(output) }
             }
             if (dest.length() > 5120) {
-                pruneRadarCacheToLatest(keepRegion = region)
                 postToWebView("""{"type":"radarReady","region":"$region","file":"$region.gif"}""")
             } else {
                 dest.delete()
@@ -181,17 +192,6 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             postToWebView("""{"type":"radarError","region":"$region","error":"Download failed"}""")
         }
-    }
-
-    private fun pruneRadarCacheToLatest(keepRegion: String?) {
-        val keepFileName = keepRegion?.let { "$it.gif" }
-        val files = radarDir.listFiles()?.filter { it.extension.equals("gif", ignoreCase = true) } ?: return
-        if (keepFileName != null) {
-            files.forEach { if (it.name != keepFileName) it.delete() }
-            return
-        }
-        val newest = files.maxByOrNull { it.lastModified() } ?: return
-        files.forEach { if (it.absolutePath != newest.absolutePath) it.delete() }
     }
 
     private fun clearAllAppCaches() {
@@ -209,6 +209,19 @@ class MainActivity : ComponentActivity() {
         // App cache directory (best-effort)
         cacheDir.deleteRecursively()
         cacheDir.mkdirs()
+    }
+
+    private fun pruneExpiredRadarGifs(nowMs: Long = System.currentTimeMillis()) {
+        radarDir.listFiles()?.forEach { file ->
+            if (file.extension.equals("gif", ignoreCase = true) && !isGifFresh(file, nowMs)) {
+                file.delete()
+            }
+        }
+    }
+
+    private fun isGifFresh(file: File, nowMs: Long = System.currentTimeMillis()): Boolean {
+        if (!file.exists()) return false
+        return (nowMs - file.lastModified()) < STALE_BACKGROUND_MS
     }
 
     private fun clearRadarGifs() {

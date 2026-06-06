@@ -18,6 +18,10 @@ struct ContentView: View {
 	@State private var isLoading = false
 	@State private var cacheText = ""
 	@State private var showingRegionSelector = false
+	@State private var zoomScale: CGFloat = 1.0
+	@State private var zoomAnchor: UnitPoint = .center
+	@State private var panOffset: CGSize = .zero
+	@State private var dragStartOffset: CGSize = .zero
 
 	var body: some View {
 		NavigationStack {
@@ -202,16 +206,46 @@ struct ContentView: View {
 				Color(red: 13/255, green: 17/255, blue: 23/255)
 				if let radarURL {
 					GIFImage(fileURL: radarURL)
+						.scaleEffect(zoomScale, anchor: zoomAnchor)
+						.offset(panOffset)
 				}
 
 				Color.clear
 					.contentShape(Rectangle())
 					.gesture(
 						DragGesture(minimumDistance: 0)
+							.onChanged { value in
+								if zoomScale > 1.01 {
+									panOffset = CGSize(
+										width: dragStartOffset.width + value.translation.width,
+										height: dragStartOffset.height + value.translation.height
+									)
+								}
+							}
 							.onEnded { value in
-								let x = max(0, min(1, value.location.x / max(1, geo.size.width)))
-								let y = max(0, min(1, value.location.y / max(1, geo.size.height)))
-								handleMapTap(x: x, y: y)
+								if zoomScale > 1.01 {
+									dragStartOffset = panOffset
+								} else {
+									let x = max(0, min(1, value.location.x / max(1, geo.size.width)))
+									let y = max(0, min(1, value.location.y / max(1, geo.size.height)))
+									handleMapTap(x: x, y: y)
+								}
+							}
+					)
+					.simultaneousGesture(
+						TapGesture(count: 2)
+							.onEnded {
+								if zoomScale > 1.01 {
+									zoomScale = 1.0
+									panOffset = .zero
+									dragStartOffset = .zero
+									zoomAnchor = .center
+								} else {
+									zoomScale = 2.0
+									panOffset = .zero
+									dragStartOffset = .zero
+									zoomAnchor = .center
+								}
 							}
 					)
 
@@ -266,18 +300,28 @@ struct ContentView: View {
 		}
 	}
 
+	private func resetZoomAndPan() {
+		zoomScale = 1.0
+		zoomAnchor = .center
+		panOffset = .zero
+		dragStartOffset = .zero
+	}
+
 	private func selectUSA() {
 		selection = .usa
+		resetZoomAndPan()
 		load(force: false)
 	}
 
 	private func selectRegion(_ newRegion: String) {
 		selection = .region(newRegion)
+		resetZoomAndPan()
 		load(force: false)
 	}
 
 	private func selectState(_ code: String) {
 		selection = .state(code)
+		resetZoomAndPan()
 		load(force: false)
 	}
 

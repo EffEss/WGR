@@ -107,9 +107,6 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         webView.navigationDelegate = self
         view.addSubview(webView)
 
-        // Keep storage tight on launch: retain only one latest GIF.
-        pruneRadarCacheToLatest(keepRegion: nil)
-
         // Load bundled HTML via custom scheme
         if let url = URL(string: "app://local/radar-map.html") {
             webView.load(URLRequest(url: url))
@@ -170,6 +167,18 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     // MARK: - Networking
 
     private func downloadRadarGif(region: String, url: URL) {
+        pruneExpiredRadarGifs()
+
+        let dest = radarDir.appendingPathComponent("\(region).gif")
+        if isGifFresh(dest),
+           let size = try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+           size > 5120 {
+            postToWebView(json: #"{"type":"radarReady","region":"\#(region)","file":"\#(region).gif"}"#)
+            return
+        }
+
+        try? FileManager.default.removeItem(at: dest)
+
         URLSession.shared.downloadTask(with: url) { [weak self] tempURL, response, error in
             guard let self = self, let tempURL = tempURL, error == nil else {
                 self?.postToWebView(json: #"{"type":"radarError","region":"\#(region)","error":"Download failed"}"#)
@@ -181,7 +190,6 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 let size = (try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
                 if size > 5120 {
-                    self.pruneRadarCacheToLatest(keepRegion: region)
                     self.postToWebView(json: #"{"type":"radarReady","region":"\#(region)","file":"\#(region).gif"}"#)
                 } else {
                     try? FileManager.default.removeItem(at: dest)
@@ -198,29 +206,6 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         if let files = try? fm.contentsOfDirectory(at: radarDir, includingPropertiesForKeys: nil) {
             files.filter { $0.pathExtension == "gif" }.forEach { try? fm.removeItem(at: $0) }
         }
-    }
-
-    private func pruneRadarCacheToLatest(keepRegion: String?) {
-        let fm = FileManager.default
-        guard let files = try? fm.contentsOfDirectory(
-            at: radarDir,
-            includingPropertiesForKeys: [.contentModificationDateKey],
-            options: [.skipsHiddenFiles]
-        ).filter({ $0.pathExtension.lowercased() == "gif" }) else { return }
-
-        if let keepRegion {
-            let keepName = "\(keepRegion).gif"
-            files.forEach { if $0.lastPathComponent != keepName { try? fm.removeItem(at: $0) } }
-            return
-        }
-
-        guard let newest = files.max(by: {
-            let l = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            let r = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-            return l < r
-        }) else { return }
-
-        files.forEach { if $0 != newest { try? fm.removeItem(at: $0) } }
     }
 
     private func clearAllCaches(completion: @escaping () -> Void) {
@@ -242,14 +227,36 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     @objc private func appWillEnterForeground() {
         guard let backgroundedAt else { return }
         self.backgroundedAt = nil
+
         if Date().timeIntervalSince(backgroundedAt) >= staleBackgroundSeconds {
-            clearAllCaches { [weak self] in
-                self?.webView.evaluateJavaScript(
-                    "if (window.refreshCurrent) { window.refreshCurrent(); }",
-                    completionHandler: nil
-                )
+            pruneExpiredRadarGifs()
+            webView.evaluateJavaScript(
+                "if (window.refreshCurrent) { window.refreshCurrent(); }",
+                completionHandler: nil
+            )
+        }
+    }
+
+    private func pruneExpiredRadarGifs(now: Date = Date()) {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(
+            at: radarDir,
+            includingPropertiesForKeys: [.contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        ) else { return }
+
+        for file in files where file.pathExtension.lowercased() == "gif" {
+            if !isGifFresh(file, now: now) {
+                try? fm.removeItem(at: file)
             }
         }
+    }
+
+    private func isGifFresh(_ file: URL, now: Date = Date()) -> Bool {
+        guard FileManager.default.fileExists(atPath: file.path) else { return false }
+        let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
+            ?? Date.distantPast
+        return now.timeIntervalSince(modified) < staleBackgroundSeconds
     }
 
     private func postToWebView(json: String) {

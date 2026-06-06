@@ -7,7 +7,6 @@ final class RadarService {
 	static let shared = RadarService()
 
 	private init() {
-		pruneCacheToLatest(keepRegion: nil)
 	}
 
 	// MARK: - Endpoint + region tables (mirrors Assets/radar-map.html)
@@ -177,6 +176,18 @@ final class RadarService {
 			return
 		}
 
+		pruneExpiredCache()
+
+		let dest = radarDir.appendingPathComponent("\(region).gif")
+		if isGifFresh(dest),
+		   let size = try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+		   size > 5120 {
+			completion(.success(dest))
+			return
+		}
+
+		try? FileManager.default.removeItem(at: dest)
+
 		URLSession.shared.downloadTask(with: url) { [weak self] tempURL, _, error in
 			guard let self = self, let tempURL = tempURL, error == nil else {
 				completion(.failure(RadarError.downloadFailed))
@@ -188,7 +199,6 @@ final class RadarService {
 				try FileManager.default.moveItem(at: tempURL, to: dest)
 				let size = (try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
 				if size > 5120 {
-					self.pruneCacheToLatest(keepRegion: region)
 					completion(.success(dest))
 				} else {
 					try? FileManager.default.removeItem(at: dest)
@@ -220,19 +230,26 @@ final class RadarService {
 		cachedGifs().forEach { try? fm.removeItem(at: $0) }
 	}
 
-	private func pruneCacheToLatest(keepRegion: String?) {
-		let fm = FileManager.default
-		let files = cachedGifs()
-		if let keepRegion {
-			let keepName = "\(keepRegion).gif"
-			files.forEach { if $0.lastPathComponent != keepName { try? fm.removeItem(at: $0) } }
-			return
+	func handleForegroundResumed(after seconds: TimeInterval) {
+		if seconds >= staleCacheSeconds {
+			pruneExpiredCache()
 		}
-		guard let newest = files.max(by: {
-			let l = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-			let r = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
-			return l < r
-		}) else { return }
-		files.forEach { if $0 != newest { try? fm.removeItem(at: $0) } }
 	}
+
+	private func pruneExpiredCache(now: Date = Date()) {
+		let fm = FileManager.default
+		for file in cachedGifs() where !isGifFresh(file, now: now) {
+			try? fm.removeItem(at: file)
+		}
+	}
+
+	private func isGifFresh(_ file: URL, now: Date = Date()) -> Bool {
+		guard FileManager.default.fileExists(atPath: file.path) else { return false }
+		let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
+			?? Date.distantPast
+		return now.timeIntervalSince(modified) < staleCacheSeconds
+	}
+
+	private let staleCacheSeconds: TimeInterval = 5 * 60
+
 }
