@@ -164,11 +164,12 @@ App size on device: ~277 KB.
 
 ### Apple Watch (iDrizzleWatch)
 
-The watchOS app target (`iDrizzleWatch Watch App`) now lives in the same Xcode
-project as iOS (`ios/iDrizzle.xcodeproj`). It remains an independent,
-watch-only app (`WKWatchOnly`) and mirrors the same radar functionality natively
-in SwiftUI (watchOS has no `WKWebView`, so radar GIFs are downloaded from the
-same AccuWeather endpoint and animated with ImageIO).
+The watchOS app target (`iDrizzleWatch Watch App`) lives in the same Xcode
+project as iOS (`ios/iDrizzle.xcodeproj`) and is distributed as the iPhone app's
+companion watch app (embedded watch content in the iOS archive). It mirrors the
+same radar functionality natively in SwiftUI (watchOS has no `WKWebView`, so
+radar GIFs are downloaded directly on-watch from the same AccuWeather endpoint
+and animated with ImageIO).
 
 ```sh
 # Reuses the same ios/Local.xcconfig Team ID as the iPhone app.
@@ -189,12 +190,12 @@ ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 
 iOS releases are automated with GitHub Actions
 ([`.github/workflows/ios-release.yml`](.github/workflows/ios-release.yml)). Pushing a
-version tag (e.g. `git tag v2.2.0 && git push origin v2.2.0`) — or running the
-**iOS Release** workflow manually from the Actions tab — archives and uploads the
-iOS app build to App Store Connect / TestFlight.
+version tag (e.g. `git tag v2.3.0 && git push origin v2.3.0`) — or running the
+**iOS Release** workflow manually from the Actions tab — archives and uploads one
+iOS archive that includes the embedded watch app companion.
 
-The watch app remains an independent watch-only target in the same Xcode project
-for local build/run/testing on Apple Watch.
+The watch app is still a separate watch target for local build/run/testing on
+Apple Watch, but App Store distribution is delivered through the iOS upload.
 
 Authentication uses an **App Store Connect API key** stored as encrypted GitHub
 repository secrets — no certificates, profiles, or IDs live in the repo.

@@ -13,7 +13,34 @@
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
 		A1000006 /* radar-map.html in Resources */ = {isa = PBXBuildFile; fileRef = A2000011 /* radar-map.html */; };
 		A1000008 /* us-states.geo.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000012 /* us-states.geo.json */; };
+		A1000010 /* iDrizzleWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 17AEEAD82FCC09F800E7C3AF /* iDrizzleWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A9000001 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				A1000010 /* iDrizzleWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		A9000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A6000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */;
+			remoteInfo = "iDrizzleWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
 
 
 
@@ -125,10 +152,12 @@
 				A3000002 /* Sources */,
 				A3000001 /* Frameworks */,
 				A3000003 /* Resources */,
+				A9000001 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A9000002 /* PBXTargetDependency */,
 			);
 			name = iDrizzle;
 			productName = iDrizzle;
@@ -136,6 +165,14 @@
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXTargetDependency section */
+		A9000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 17AEEAD72FCC09F800E7C3AF /* iDrizzleWatch Watch App */;
+			targetProxy = A9000003 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		A6000001 /* Project object */ = {

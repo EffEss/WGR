@@ -41,8 +41,8 @@ android {
         targetSdk = 35
         // versionCode tracks the sequential build count N (the integer part of
         // CFBundleVersion's N.WAIS scheme; see .github/copilot-instructions.md).
-        versionCode = 11
-        versionName = "2.2.2"
+        versionCode = 12
+        versionName = "2.3.0"
     }
 
     signingConfigs {

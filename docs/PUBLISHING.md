@@ -5,8 +5,8 @@ apps. iOS/watchOS releases are automated with GitHub Actions
 ([`.github/workflows/ios-release.yml`](../.github/workflows/ios-release.yml)).
 
 `iDrizzle` and `iDrizzleWatch Watch App` now live in **one Xcode project**
-(`ios/iDrizzle.xcodeproj`). The watch target is `WKWatchOnly` (independent on
-watch hardware) but is packaged through the iOS archive via Xcode's
+(`ios/iDrizzle.xcodeproj`). The watch target is shipped as an iPhone companion
+watch app and is packaged through the iOS archive via Xcode's
 **Embed Watch Content** relationship.
 
 > **Security note:** all credentials live in GitHub **encrypted repository
@@ -24,8 +24,8 @@ Actions tab — archives the `iDrizzle` scheme (which includes the embedded watc
 app) and uploads once to App Store Connect / TestFlight:
 
 ```sh
-git tag v2.1.0
-git push origin v2.1.0
+git tag v2.3.0
+git push origin v2.3.0
 ```
 
 No certificates or provisioning profiles are stored in the repo; CI imports one

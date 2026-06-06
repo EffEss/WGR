@@ -37,6 +37,9 @@ class MainActivity : ComponentActivity() {
             settings.domStorageEnabled = true
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             settings.cacheMode = WebSettings.LOAD_DEFAULT
+            // Keep HTML UI sizing stable across OEM/system accessibility scaling.
+            // The page has its own responsive CSS for small screens.
+            settings.textZoom = 100
         }
         setContentView(webView)
 

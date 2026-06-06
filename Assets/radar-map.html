@@ -97,19 +97,51 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
     padding: 6px 8px;
     flex-wrap: wrap; gap: 4px;
   }
+  #regionBtns { flex-wrap: wrap; row-gap: 4px; }
   .rb { padding: 5px 10px; font-size: 13px; }
   #regionBtns .lbl { font-size: 12px; }
-  #statusArea { font-size: 12px; }
+  #statusArea { font-size: 12px; margin-left: 0; width: 100%; justify-content: flex-end; }
   .leaflet-control-zoom a { width: 36px !important; height: 36px !important;
     line-height: 36px !important; font-size: 20px !important; }
 }
-/* Portrait phone: shrink toolbar buttons text to prevent overflow */
-@media (max-width: 420px) {
-  #toolbar { gap: 2px; padding: 5px 6px; }
+/* Portrait / narrow layouts: wrap the toolbar and stack the bottom bar so it grows
+   vertically (taller) instead of overflowing horizontally. */
+@media (max-width: 700px) {
+  #toolbar { gap: 2px; padding: 5px 6px; flex-wrap: wrap; }
   .tb { padding: 5px 7px; font-size: 12px; }
   #toolbar .title { font-size: 11px; }
   #regionTitle { font-size: 10px; }
+
+  /* Let the bottom bar become a centered column: region buttons wrap onto
+     as many rows as needed, with the status line beneath them. */
+  #bottombar { flex-direction: column; align-items: stretch; gap: 6px; }
+  #regionBtns { flex-wrap: wrap; justify-content: center; gap: 4px; }
+  #regionBtns .lbl { width: 100%; text-align: center; margin-right: 0; }
+  .rb { flex: 1 1 auto; text-align: center; min-width: 56px; }
+  #statusArea { margin-left: 0; justify-content: center; }
 }
+
+/* Extra-tight phones / enlarged display-size settings */
+@media (max-width: 360px) {
+  #toolbar { gap: 2px; padding: 4px 5px; }
+  #toolbar .title { display: none; }
+  /* Put the region label on its own centered row so the action buttons
+     keep their full width. */
+  #regionTitle { font-size: 10px; flex-basis: 100%; order: -1; text-align: center; }
+  .tb { padding: 4px 6px; font-size: 11px; }
+
+  #bottombar {
+    left: calc(env(safe-area-inset-left, 0px) + 4px);
+    right: calc(env(safe-area-inset-right, 0px) + 4px);
+    padding: 5px 6px;
+  }
+  #regionBtns .lbl { display: none; }
+  .rb { padding: 4px 7px; font-size: 11px; min-width: 48px; }
+  #statusArea { font-size: 10px; gap: 6px; }
+}
+
+/* Keep long button labels on one line across DPI/font variants */
+.tb, .rb, #toolbar .title, #regionTitle { line-height: 1.1; }
 </style>
 </head>
 <body>
@@ -327,13 +359,19 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 
 function getMapFitPadding() {
   const zoom = document.querySelector('.leaflet-control-zoom');
+  const toolbar = document.getElementById('toolbar');
+  const bottombar = document.getElementById('bottombar');
   const rightInset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-right)')) || 0;
   const leftInset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')) || 0;
+  // Reserve space for the floating bars so the radar always sits between them,
+  // even when they wrap onto extra rows on narrow/portrait screens.
+  const topPad = Math.ceil((toolbar?.offsetHeight || 0) + 16);
+  const bottomPad = Math.ceil((bottombar?.offsetHeight || 0) + 16);
   const rightPad = Math.ceil((zoom?.offsetWidth || 0) + rightInset + 16);
   const leftPad = Math.ceil(leftInset + 8);
   return {
-    paddingTopLeft: [leftPad, 8],
-    paddingBottomRight: [rightPad, 8]
+    paddingTopLeft: [leftPad, topPad],
+    paddingBottomRight: [rightPad, bottomPad]
   };
 }
 
