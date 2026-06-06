@@ -35,17 +35,27 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   z-index: 9000;
   display: flex; align-items: center; gap: 8px;
   padding: 6px 10px; border-radius: 8px;
+  min-height: 34px;
   background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   -webkit-app-region: drag;
 }
-#toolbar .title { font-weight: 600; font-size: 13px; white-space: nowrap; }
-#toolbar .title svg { vertical-align: -2px; margin-right: 4px; }
-#regionTitle { flex: 1; text-align: center; font-size: 12px; color: #aaa;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#toolbar .btns { display: flex; gap: 2px; -webkit-app-region: no-drag; }
-.tb { padding: 4px 8px; font-size: 12px; border: none; border-radius: 4px;
-  background: rgba(255,255,255,0.06); color: #ccc; cursor: pointer; white-space: nowrap; }
+#toolbar .title {
+  font-weight: 600; font-size: 13px; white-space: nowrap;
+  display: inline-flex; align-items: center; line-height: 1;
+}
+#toolbar .title svg { display: block; margin-right: 4px; }
+#regionTitle {
+  flex: 1; text-align: center; font-size: 12px; color: #aaa;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; line-height: 1.1;
+}
+#toolbar .btns { display: flex; align-items: center; gap: 2px; -webkit-app-region: no-drag; }
+.tb {
+  padding: 4px 8px; font-size: 12px; border: none; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: #ccc; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+}
 .tb:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .tb:active { background: rgba(0,120,212,0.4); }
 
@@ -97,31 +107,49 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
     padding: 6px 8px;
     flex-wrap: wrap; gap: 4px;
   }
-  #regionBtns { flex-wrap: wrap; row-gap: 4px; }
-  .rb { padding: 5px 10px; font-size: 13px; }
+  #regionBtns { flex-wrap: nowrap; row-gap: 0; }
+  .rb { padding: 5px 8px; font-size: 12px; min-width: 40px; }
   #regionBtns .lbl { font-size: 12px; }
   #statusArea { font-size: 12px; margin-left: 0; width: 100%; justify-content: flex-end; }
   .leaflet-control-zoom a { width: 36px !important; height: 36px !important;
     line-height: 36px !important; font-size: 20px !important; }
 }
-/* Portrait / narrow layouts: wrap the toolbar and stack the bottom bar so it grows
-   vertically (taller) instead of overflowing horizontally. */
+/* Portrait / narrow layouts: keep one-row regions as long as possible. */
 @media (max-width: 700px) {
   #toolbar { gap: 2px; padding: 5px 6px; flex-wrap: wrap; }
   .tb { padding: 5px 7px; font-size: 12px; }
   #toolbar .title { font-size: 11px; }
   #regionTitle { font-size: 10px; }
 
-  /* Let the bottom bar become a centered column: region buttons wrap onto
-     as many rows as needed, with the status line beneath them. */
   #bottombar { flex-direction: column; align-items: stretch; gap: 6px; }
-  #regionBtns { flex-wrap: wrap; justify-content: center; gap: 4px; }
-  #regionBtns .lbl { width: 100%; text-align: center; margin-right: 0; }
-  .rb { flex: 1 1 auto; text-align: center; min-width: 56px; }
+  #regionBtns { display: flex; flex-wrap: nowrap; justify-content: center; gap: 4px; }
+  #regionBtns .lbl { width: auto; text-align: center; margin-right: 2px; }
+  .rb { min-width: 38px; text-align: center; padding: 5px 7px; }
   #statusArea { margin-left: 0; justify-content: center; }
 }
 
-/* Extra-tight phones / enlarged display-size settings */
+/* If width/DPI pressure makes one row too tight, switch to a balanced 3x2 layout. */
+@media (max-width: 560px) {
+  #regionBtns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    align-items: center;
+  }
+  #regionBtns .lbl {
+    grid-column: 1 / -1;
+    width: auto;
+    text-align: center;
+    margin-right: 0;
+  }
+  .rb {
+    min-width: 0;
+    width: 100%;
+    padding: 5px 8px;
+  }
+}
+
+/* Extra-tight phones / enlarged display-size: move from 3x2 to 2/2/2. */
 @media (max-width: 360px) {
   #toolbar { gap: 2px; padding: 4px 5px; }
   #toolbar .title { display: none; }
@@ -135,8 +163,12 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
     right: calc(env(safe-area-inset-right, 0px) + 4px);
     padding: 5px 6px;
   }
+  #regionBtns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
   #regionBtns .lbl { display: none; }
-  .rb { padding: 4px 7px; font-size: 11px; min-width: 48px; }
+  .rb { padding: 4px 6px; font-size: 11px; min-width: 0; }
   #statusArea { font-size: 10px; gap: 6px; }
 }
 
