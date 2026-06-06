@@ -89,7 +89,7 @@ jobs:
           xcodebuild -project ios/iDrizzle.xcodeproj \
             -scheme iDrizzle \
             -configuration Release \
-            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath build/iDrizzle.xcarchive \
             -authenticationKeyPath ~/private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             -authenticationKeyID "${ASC_KEY_ID}" \
