@@ -106,6 +106,9 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         webView.navigationDelegate = self
         view.addSubview(webView)
 
+        // Keep storage tight on launch: retain only one latest GIF.
+        pruneRadarCacheToLatest(keepRegion: nil)
+
         // Load bundled HTML via custom scheme
         if let url = URL(string: "app://local/radar-map.html") {
             webView.load(URLRequest(url: url))
@@ -136,8 +139,9 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
             downloadRadarGif(region: region, url: url)
 
         case "CLEARCACHE":
-            cleanRadarCache()
-            postToWebView(json: #"{"type":"cacheCleared"}"#)
+            clearAllCaches {
+                self.postToWebView(json: #"{"type":"cacheCleared"}"#)
+            }
 
         case "CACHESIZE":
             let files = (try? FileManager.default.contentsOfDirectory(at: radarDir, includingPropertiesForKeys: [.fileSizeKey]))?.filter { $0.pathExtension == "gif" } ?? []
@@ -163,6 +167,7 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 let size = (try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
                 if size > 5120 {
+                    self.pruneRadarCacheToLatest(keepRegion: region)
                     self.postToWebView(json: #"{"type":"radarReady","region":"\#(region)","file":"\#(region).gif"}"#)
                 } else {
                     try? FileManager.default.removeItem(at: dest)
@@ -181,6 +186,41 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         }
     }
 
+    private func pruneRadarCacheToLatest(keepRegion: String?) {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(
+            at: radarDir,
+            includingPropertiesForKeys: [.contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        ).filter({ $0.pathExtension.lowercased() == "gif" }) else { return }
+
+        if let keepRegion {
+            let keepName = "\(keepRegion).gif"
+            files.forEach { if $0.lastPathComponent != keepName { try? fm.removeItem(at: $0) } }
+            return
+        }
+
+        guard let newest = files.max(by: {
+            let l = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            let r = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            return l < r
+        }) else { return }
+
+        files.forEach { if $0 != newest { try? fm.removeItem(at: $0) } }
+    }
+
+    private func clearAllCaches(completion: @escaping () -> Void) {
+        cleanRadarCache()
+
+        URLCache.shared.removeAllCachedResponses()
+
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+        let fromDate = Date(timeIntervalSince1970: 0)
+        WKWebsiteDataStore.default().removeData(ofTypes: allTypes, modifiedSince: fromDate) {
+            completion()
+        }
+    }
+
     private func postToWebView(json: String) {
         let escaped = json.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
         DispatchQueue.main.async { [weak self] in
@@ -189,7 +229,6 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     }
 
     deinit {
-        cleanRadarCache()
     }
 
     // MARK: - Bridge shim

@@ -6,6 +6,10 @@ final class RadarService {
 
 	static let shared = RadarService()
 
+	private init() {
+		pruneCacheToLatest(keepRegion: nil)
+	}
+
 	// MARK: - Endpoint + region tables (mirrors Assets/radar-map.html)
 
 	static let radarBase = "https://sirocco.accuweather.com/nx_mosaic_640x480_public/sir/"
@@ -184,6 +188,7 @@ final class RadarService {
 				try FileManager.default.moveItem(at: tempURL, to: dest)
 				let size = (try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
 				if size > 5120 {
+					self.pruneCacheToLatest(keepRegion: region)
 					completion(.success(dest))
 				} else {
 					try? FileManager.default.removeItem(at: dest)
@@ -213,5 +218,21 @@ final class RadarService {
 	func clearCache() {
 		let fm = FileManager.default
 		cachedGifs().forEach { try? fm.removeItem(at: $0) }
+	}
+
+	private func pruneCacheToLatest(keepRegion: String?) {
+		let fm = FileManager.default
+		let files = cachedGifs()
+		if let keepRegion {
+			let keepName = "\(keepRegion).gif"
+			files.forEach { if $0.lastPathComponent != keepName { try? fm.removeItem(at: $0) } }
+			return
+		}
+		guard let newest = files.max(by: {
+			let l = (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+			let r = (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+			return l < r
+		}) else { return }
+		files.forEach { if $0 != newest { try? fm.removeItem(at: $0) } }
 	}
 }

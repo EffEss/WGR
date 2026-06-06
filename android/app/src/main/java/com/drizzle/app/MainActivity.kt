@@ -54,6 +54,9 @@ class MainActivity : ComponentActivity() {
         }
         setContentView(webView)
 
+        // Keep storage tight on launch: retain only one latest GIF.
+        pruneRadarCacheToLatest(keepRegion = null)
+
         // Serve bundled assets from assets/ via https://app.local/
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("app.local")
@@ -96,8 +99,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         scope.cancel()
-        // Clean radar cache on exit
-        radarDir.listFiles()?.forEach { it.delete() }
         super.onDestroy()
     }
 
@@ -128,7 +129,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 "CLEARCACHE" -> {
-                    radarDir.listFiles()?.forEach { it.delete() }
+                    clearAllAppCaches()
                     postToWebView("""{"type":"cacheCleared"}""")
                 }
                 "CACHESIZE" -> {
@@ -147,6 +148,7 @@ class MainActivity : ComponentActivity() {
                 dest.outputStream().use { output -> input.copyTo(output) }
             }
             if (dest.length() > 5120) {
+                pruneRadarCacheToLatest(keepRegion = region)
                 postToWebView("""{"type":"radarReady","region":"$region","file":"$region.gif"}""")
             } else {
                 dest.delete()
@@ -155,6 +157,34 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             postToWebView("""{"type":"radarError","region":"$region","error":"Download failed"}""")
         }
+    }
+
+    private fun pruneRadarCacheToLatest(keepRegion: String?) {
+        val keepFileName = keepRegion?.let { "$it.gif" }
+        val files = radarDir.listFiles()?.filter { it.extension.equals("gif", ignoreCase = true) } ?: return
+        if (keepFileName != null) {
+            files.forEach { if (it.name != keepFileName) it.delete() }
+            return
+        }
+        val newest = files.maxByOrNull { it.lastModified() } ?: return
+        files.forEach { if (it.absolutePath != newest.absolutePath) it.delete() }
+    }
+
+    private fun clearAllAppCaches() {
+        // Radar file cache used by the custom bridge
+        radarDir.listFiles()?.forEach { it.delete() }
+
+        // WebView runtime caches/storage
+        webView.clearCache(true)
+        webView.clearHistory()
+        webView.clearFormData()
+        WebStorage.getInstance().deleteAllData()
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
+
+        // App cache directory (best-effort)
+        cacheDir.deleteRecursively()
+        cacheDir.mkdirs()
     }
 
     private fun postToWebView(json: String) {
