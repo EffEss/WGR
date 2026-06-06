@@ -27,7 +27,7 @@ jobs:
           xcodebuild -project ios/iDrizzle.xcodeproj \
             -scheme iDrizzle \
             -configuration Release \
-            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath build/iDrizzle.xcarchive \
             DRIZZLE_DEVELOPMENT_TEAM="" \
             CODE_SIGN_IDENTITY="-" \
