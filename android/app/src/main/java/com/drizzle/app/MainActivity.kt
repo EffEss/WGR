@@ -2,9 +2,11 @@ package com.drizzle.app
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.View
 import android.webkit.*
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -14,6 +16,7 @@ import java.net.URL
 class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var insetsController: WindowInsetsControllerCompat
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val radarDir: File by lazy {
@@ -24,12 +27,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Edge-to-edge dark background
+        // Modern edge-to-edge setup (Android 15+ ready)
+        enableEdgeToEdge()
+
+        // Dark bars for transient reveal state
         window.statusBarColor = 0xFF0D1117.toInt()
         window.navigationBarColor = 0xFF0D1117.toInt()
 
-        // Immersive sticky: hides status + nav bars, swipe edge to reveal
-        enableImmersiveMode()
+        // Immersive behavior via WindowInsetsControllerCompat (replaces deprecated
+        // systemUiVisibility flags)
+        insetsController = WindowInsetsControllerCompat(window, window.decorView).apply {
+            systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        hideSystemBars()
 
         webView = WebView(this).apply {
             setBackgroundColor(0xFF0D1117.toInt())
@@ -92,19 +103,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) enableImmersiveMode()
+        if (hasFocus) hideSystemBars()
     }
 
-    @Suppress("DEPRECATION")
-    private fun enableImmersiveMode() {
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        )
+    private fun hideSystemBars() {
+        insetsController.hide(WindowInsetsCompat.Type.systemBars())
     }
 
     @Suppress("unused")
