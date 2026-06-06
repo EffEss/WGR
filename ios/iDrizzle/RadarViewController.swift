@@ -4,6 +4,7 @@ import WebKit
 class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigationDelegate {
 
     private var webView: WKWebView!
+    private var backgroundedAt: Date?
     private let radarDir: URL = {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("radar")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -113,6 +114,19 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         if let url = URL(string: "app://local/radar-map.html") {
             webView.load(URLRequest(url: url))
         }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
@@ -221,6 +235,23 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         }
     }
 
+    @objc private func appDidEnterBackground() {
+        backgroundedAt = Date()
+    }
+
+    @objc private func appWillEnterForeground() {
+        guard let backgroundedAt else { return }
+        self.backgroundedAt = nil
+        if Date().timeIntervalSince(backgroundedAt) >= staleBackgroundSeconds {
+            clearAllCaches { [weak self] in
+                self?.webView.evaluateJavaScript(
+                    "if (window.refreshCurrent) { window.refreshCurrent(); }",
+                    completionHandler: nil
+                )
+            }
+        }
+    }
+
     private func postToWebView(json: String) {
         let escaped = json.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
         DispatchQueue.main.async { [weak self] in
@@ -229,9 +260,12 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Bridge shim
+
+    private let staleBackgroundSeconds: TimeInterval = 5 * 60
 
     static let bridgeShim = """
     (function() {

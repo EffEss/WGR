@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var webView: WebView
     private lateinit var insetsController: WindowInsetsControllerCompat
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var backgroundedAtMs: Long = 0L
 
     private val radarDir: File by lazy {
         File(filesDir, "radar").also { it.mkdirs() }
@@ -97,6 +98,29 @@ class MainActivity : ComponentActivity() {
         webView.loadUrl("https://app.local/radar-map.html")
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (backgroundedAtMs > 0L) {
+            val elapsed = System.currentTimeMillis() - backgroundedAtMs
+            if (elapsed >= STALE_BACKGROUND_MS) {
+                clearAllAppCaches()
+                // Force refresh of whatever region/state is currently selected.
+                webView.post {
+                    webView.evaluateJavascript(
+                        "if (window.refreshCurrent) { window.refreshCurrent(); }",
+                        null
+                    )
+                }
+            }
+            backgroundedAtMs = 0L
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        backgroundedAtMs = System.currentTimeMillis()
+    }
+
     override fun onDestroy() {
         scope.cancel()
         super.onDestroy()
@@ -172,7 +196,7 @@ class MainActivity : ComponentActivity() {
 
     private fun clearAllAppCaches() {
         // Radar file cache used by the custom bridge
-        radarDir.listFiles()?.forEach { it.delete() }
+        clearRadarGifs()
 
         // WebView runtime caches/storage
         webView.clearCache(true)
@@ -187,6 +211,10 @@ class MainActivity : ComponentActivity() {
         cacheDir.mkdirs()
     }
 
+    private fun clearRadarGifs() {
+        radarDir.listFiles()?.forEach { it.delete() }
+    }
+
     private fun postToWebView(json: String) {
         val escaped = json.replace("\\", "\\\\").replace("'", "\\'")
         runOnUiThread {
@@ -197,6 +225,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        private const val STALE_BACKGROUND_MS = 5 * 60 * 1000L
+
         // Raw JS shim injected into <head> before any page scripts run
         private const val BRIDGE_SHIM_RAW = """
             (function() {
