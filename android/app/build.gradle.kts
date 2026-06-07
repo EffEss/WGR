@@ -33,16 +33,16 @@ val hasReleaseSigning =
 
 android {
     namespace = "com.drizzle.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.drizzle.app"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         // versionCode tracks the sequential build count N (the integer part of
         // CFBundleVersion's N.WAIS scheme; see .github/copilot-instructions.md).
-        versionCode = 20
-        versionName = "2.3.7"
+        versionCode = 21
+        versionName = "2.3.8"
     }
 
     signingConfigs {
@@ -80,6 +80,6 @@ android {
 }
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.9.3")
-    implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation("androidx.webkit:webkit:1.13.0")
 }

@@ -28,7 +28,7 @@ jobs:
       DIST_CERT_P12_BASE64: ${{ secrets.WATCH_DIST_CERT_P12_BASE64 }}
       DIST_CERT_PASSWORD: ${{ secrets.WATCH_DIST_CERT_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # The iDrizzle project references ios/Local.xcconfig as a base config for
       # every target (it supplies DRIZZLE_DEVELOPMENT_TEAM). It is gitignored, so
