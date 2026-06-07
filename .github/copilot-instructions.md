@@ -3,6 +3,7 @@
 ## Project Guidelines
 - iOS and watchOS app icons are tracked directly in each target's `Assets.xcassets/AppIcon.appiconset/` so the project builds out-of-the-box without copy steps. Keep `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` enabled for iOS target configs so `CFBundleIconName` is generated. The project is designed to work out-of-the-box without special manual copy flows, repo instruction-file dependencies, or separate workaround flows for app icons.
 - When building the iOS app locally, must create `ios/Local.xcconfig` from `ios/Local.xcconfig.template` and set `DRIZZLE_DEVELOPMENT_TEAM` to the Apple Developer Team ID. The file is gitignored so the Team ID is never committed. The watchOS app reuses the same `ios/Local.xcconfig` and must also ensure that the watchOS app remains an independent watch-only app behavior (WKWatchOnly).
+- Keep `SWIFT_VERSION = 5.0` in `ios/iDrizzle.xcodeproj/project.pbxproj`. Do NOT migrate to Swift 6 language mode. Rationale: Swift 5 mode is still current/supported (default in latest Xcode), the Swift compiler/SwiftUI are already modern via the Xcode 26 SDK and watchOS 26.5 target, and Swift 6 mode enables strict concurrency checking that risks CI-only build failures since the watch app can't be built locally on Windows. This does not violate the 'current/latest-LTS' toolchain policy.
 - When bumping the version for a new release, always update `versionName` in `android/app/build.gradle.kts` to match the new version number. The Android workflow reads this value to auto-rename the APK/AAB to `Drizzle_v{version}`.
 - For Play Store Android releases, always build a signed AAB (`bundleRelease`) and keep signing secrets in gitignored `android/keystore.properties` or GitHub Actions secrets, never in tracked files.
 - When bumping the version for a new release, also update `CFBundleShortVersionString` in `ios/iDrizzle/Info.plist` to match the new version number.
@@ -18,3 +19,6 @@
 ## Release Management
 - For each version release, explicitly create GitHub Releases for version tags and include built Windows assets (Drizzle.exe and a zip, versioned like `Drizzle_vX.Y.Z.zip`).
 - Adopt proactive release workflows to ensure future-proofing, including early migration for platform deprecations (e.g., opt into Node 24 ahead of enforced rollout).
+
+## Git Management
+- In the WGR/iDrizzle repo, do NOT commit or push changes to `.github/copilot-instructions.md`. Treat it as a personal/local file and keep local edits uncommitted. Never stage or commit this file as part of other changes; use targeted `git add` of specific files rather than `git add -A` when it has pending edits.
