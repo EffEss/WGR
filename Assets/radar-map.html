@@ -142,6 +142,28 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   color: #aaa;
   cursor: pointer;
 }
+#regionBtns.layout-3,
+#regionBtns.layout-2 {
+  display: grid;
+  align-items: center;
+  justify-items: stretch;
+  gap: 4px;
+}
+#regionBtns.layout-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#regionBtns.layout-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#regionBtns.layout-3 .lbl,
+#regionBtns.layout-2 .lbl {
+  grid-column: 1 / -1;
+  margin-right: 0;
+  text-align: center;
+  justify-self: center;
+}
+#regionBtns.layout-3 .rb,
+#regionBtns.layout-2 .rb {
+  min-width: 0;
+  width: 100%;
+  text-align: center;
+}
 .rb:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .rb.active { background: rgba(0,120,212,0.7); color: #fff; }
 #statusArea {
@@ -229,28 +251,14 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   .tb .tb-icon { flex: 0 0 1.2em; width: 1.2em; }
 }
 
-/* Width pressure: regions switch to balanced 3x2. */
+/* Width pressure: tighten spacing/fonts but let JS choose 6-wide vs 3x2 vs 2x3. */
 @media (max-width: 500px) {
-  #regionBtns {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-    align-items: center;
-  }
-  #regionBtns .lbl {
-    grid-column: 1 / -1;
-    width: auto;
-    text-align: center;
-    margin-right: 0;
-  }
   .rb {
-    min-width: 0;
-    width: 100%;
     padding: 5px 8px;
   }
 }
 
-/* Extra-tight phones: move from 3x2 to 2/2/2 and clip long status text safely. */
+/* Extra-tight phones: keep text readable and clip long status text safely. */
 @media (max-width: 360px) {
   #toolbar { padding: 4px 5px; row-gap: 3px; }
   #toolbar .title,
@@ -264,11 +272,7 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
     right: calc(env(safe-area-inset-right, 0px) + 4px);
     padding: 5px 6px;
   }
-  #regionBtns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3px;
-  }
-  #regionBtns .lbl { display: none; }
+  #regionBtns { gap: 3px; }
   .rb { padding: 4px 6px; font-size: 11px; min-width: 0; }
 
   #statusArea {
@@ -301,7 +305,7 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 
 <!-- ── Floating bottom bar ───────────────────────────────────── -->
 <div id="bottombar">
-  <div id="regionBtns">
+  <div id="regionBtns" class="layout-6">
     <span class="lbl">Region</span>
   </div>
   <div id="statusArea">
@@ -462,7 +466,32 @@ function fmtTime(d) {
     };
     container.appendChild(btn);
   });
+  applyRegionButtonLayout();
 })();
+
+function applyRegionButtonLayout() {
+  const container = document.getElementById('regionBtns');
+  if (!container) return;
+
+  container.classList.remove('layout-2', 'layout-3', 'layout-6');
+  container.classList.add('layout-6');
+
+  const bottombar = document.getElementById('bottombar');
+  if (!bottombar) return;
+
+  const overflowsIn6 = container.scrollWidth > (container.clientWidth + 1);
+  if (overflowsIn6) {
+    container.classList.remove('layout-6');
+    container.classList.add('layout-3');
+
+    const overflowsIn3 = bottombar.scrollHeight > (bottombar.clientHeight + 1) ||
+      container.scrollWidth > (container.clientWidth + 1);
+    if (overflowsIn3) {
+      container.classList.remove('layout-3');
+      container.classList.add('layout-2');
+    }
+  }
+}
 
 function clearRegionSelection() {
   if (_selectedRegionBtn) { _selectedRegionBtn.classList.remove('active'); _selectedRegionBtn = null; }
@@ -525,9 +554,18 @@ function relayoutMap() {
 let _relayoutTimer = null;
 function scheduleRelayout() {
   if (_relayoutTimer) clearTimeout(_relayoutTimer);
-  requestAnimationFrame(relayoutMap);
-  _relayoutTimer = setTimeout(relayoutMap, 120);
-  setTimeout(relayoutMap, 320);
+  requestAnimationFrame(function() {
+    applyRegionButtonLayout();
+    relayoutMap();
+  });
+  _relayoutTimer = setTimeout(function() {
+    applyRegionButtonLayout();
+    relayoutMap();
+  }, 120);
+  setTimeout(function() {
+    applyRegionButtonLayout();
+    relayoutMap();
+  }, 320);
 }
 
 requestAnimationFrame(scheduleRelayout);
