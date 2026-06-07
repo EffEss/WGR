@@ -33,28 +33,73 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   left: calc(env(safe-area-inset-left, 0px) + 10px);
   right: calc(env(safe-area-inset-right, 0px) + 10px);
   z-index: 9000;
-  display: flex; align-items: center; gap: 8px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
   padding: 6px 10px; border-radius: 8px;
   min-height: 34px;
+  overflow: hidden;
   background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   -webkit-app-region: drag;
 }
-#toolbar .title {
-  font-weight: 600; font-size: 13px; white-space: nowrap;
-  display: inline-flex; align-items: center; line-height: 1;
-}
-#toolbar .title svg { display: block; margin-right: 4px; }
-#regionTitle {
-  flex: 1; text-align: center; font-size: 12px; color: #aaa;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  display: flex; align-items: center; justify-content: center; line-height: 1.1;
-}
-#toolbar .btns { display: flex; align-items: center; gap: 2px; -webkit-app-region: no-drag; }
+#toolbar .title,
+#regionTitle,
 .tb {
-  padding: 4px 8px; font-size: 12px; border: none; border-radius: 4px;
-  background: rgba(255,255,255,0.06); color: #ccc; cursor: pointer; white-space: nowrap;
-  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+  min-height: 22px;
+  font-size: 12px;
+  line-height: 1;
+}
+#toolbar .title {
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+#regionTitle {
+  min-width: 0;
+  text-align: center;
+  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#toolbar .btns {
+  -webkit-app-region: no-drag;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 2px;
+  align-items: center;
+}
+.tb {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  color: #ccc;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow: hidden;
+}
+.tb .tb-icon {
+  flex: 0 0 1.5em;
+  width: 1.5em;
+  text-align: center;
+  line-height: 1;
+}
+.tb .tb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tb:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .tb:active { background: rgba(0,120,212,0.4); }
@@ -65,18 +110,56 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   left: calc(env(safe-area-inset-left, 0px) + 10px);
   right: calc(env(safe-area-inset-right, 0px) + 10px);
   z-index: 9000;
-  display: flex; align-items: center; gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 4px;
   padding: 6px 10px; border-radius: 8px;
+  overflow: hidden;
   background: rgba(30,30,46,0.82); border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
-#regionBtns { display: flex; gap: 2px; align-items: center; }
-#regionBtns .lbl { font-size: 11px; color: rgba(255,255,255,0.5); margin-right: 4px; }
-.rb { padding: 3px 6px; font-size: 11px; border: none; border-radius: 4px;
-  background: transparent; color: #aaa; cursor: pointer; }
+#regionBtns {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+#regionBtns .lbl {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-right: 4px;
+}
+.rb {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  font-size: 11px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+}
 .rb:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .rb.active { background: rgba(0,120,212,0.7); color: #fff; }
-#statusArea { margin-left: auto; display: flex; gap: 10px; font-size: 11px; color: #888; }
+#statusArea {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #888;
+}
+#statusText,
+#cacheStatus {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ── Loading indicator ────────────────────────────────────────── */
 #loadingText {
@@ -96,40 +179,58 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 /* ── Mobile / touch overrides ───────────────────────────────── */
 @media (max-width: 768px), (pointer: coarse) {
   #toolbar {
-    padding: 6px 8px; gap: 4px;
+    padding: 6px 8px;
+    column-gap: 4px;
   }
-  #toolbar .title { font-size: 12px; }
-  #regionTitle { font-size: 11px; min-width: 0; }
-  .tb { padding: 6px 10px; font-size: 13px; }
+  #toolbar .title,
+  #regionTitle,
+  .tb {
+    font-size: 11px;
+  }
+  .tb { padding: 4px 7px; }
+  .tb .tb-icon { flex-basis: 1.35em; width: 1.35em; }
   #bottombar {
     left: calc(env(safe-area-inset-left, 0px) + 6px);
     right: calc(env(safe-area-inset-right, 0px) + 6px);
     padding: 6px 8px;
-    flex-wrap: wrap; gap: 4px;
   }
-  #regionBtns { flex-wrap: nowrap; row-gap: 0; }
-  .rb { padding: 5px 8px; font-size: 12px; min-width: 40px; }
-  #regionBtns .lbl { font-size: 12px; }
-  #statusArea { font-size: 12px; margin-left: 0; width: 100%; justify-content: flex-end; }
+  #regionBtns .lbl { font-size: 11px; margin-right: 2px; }
+  .rb { padding: 4px 6px; font-size: 11px; min-width: 34px; }
+  #statusArea { font-size: 11px; gap: 4px; }
   .leaflet-control-zoom a { width: 36px !important; height: 36px !important;
     line-height: 36px !important; font-size: 20px !important; }
 }
-/* Portrait / narrow layouts: keep one-row regions as long as possible. */
-@media (max-width: 700px) {
-  #toolbar { gap: 2px; padding: 5px 6px; flex-wrap: wrap; }
-  .tb { padding: 5px 7px; font-size: 12px; }
-  #toolbar .title { font-size: 11px; }
-  #regionTitle { font-size: 10px; }
 
-  #bottombar { flex-direction: column; align-items: stretch; gap: 6px; }
-  #regionBtns { display: flex; flex-wrap: nowrap; justify-content: center; gap: 4px; }
-  #regionBtns .lbl { width: auto; text-align: center; margin-right: 2px; }
-  .rb { min-width: 38px; text-align: center; padding: 5px 7px; }
-  #statusArea { margin-left: 0; justify-content: center; }
+/* Narrow widths: keep title/region on first row and buttons on second row. */
+@media (max-width: 520px) {
+  #toolbar {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "title region"
+      "btns btns";
+    row-gap: 4px;
+  }
+  #toolbar .title { grid-area: title; }
+  #regionTitle { grid-area: region; justify-content: flex-start; text-align: left; }
+  #toolbar .btns {
+    grid-area: btns;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row;
+    grid-auto-columns: initial;
+  }
+  .tb {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    justify-content: flex-start;
+  }
+  .tb .tb-icon { flex: 0 0 1.2em; width: 1.2em; }
 }
 
-/* If width/DPI pressure makes one row too tight, switch to a balanced 3x2 layout. */
-@media (max-width: 560px) {
+/* Width pressure: regions switch to balanced 3x2. */
+@media (max-width: 500px) {
   #regionBtns {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -149,14 +250,14 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   }
 }
 
-/* Extra-tight phones / enlarged display-size: move from 3x2 to 2/2/2. */
+/* Extra-tight phones: move from 3x2 to 2/2/2 and clip long status text safely. */
 @media (max-width: 360px) {
-  #toolbar { gap: 2px; padding: 4px 5px; }
-  #toolbar .title { display: none; }
-  /* Put the region label on its own centered row so the action buttons
-     keep their full width. */
-  #regionTitle { font-size: 10px; flex-basis: 100%; order: -1; text-align: center; }
-  .tb { padding: 4px 6px; font-size: 11px; }
+  #toolbar { padding: 4px 5px; row-gap: 3px; }
+  #toolbar .title,
+  #regionTitle,
+  .tb { font-size: 10px; }
+  .tb { padding: 4px 5px; min-height: 20px; }
+  .tb .tb-icon { flex: 0 0 1.1em; width: 1.1em; }
 
   #bottombar {
     left: calc(env(safe-area-inset-left, 0px) + 4px);
@@ -169,7 +270,16 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
   }
   #regionBtns .lbl { display: none; }
   .rb { padding: 4px 6px; font-size: 11px; min-width: 0; }
-  #statusArea { font-size: 10px; gap: 6px; }
+
+  #statusArea {
+    font-size: 10px;
+    gap: 2px;
+  }
+  #statusText,
+  #cacheStatus {
+    flex: 1 1 100%;
+    text-align: center;
+  }
 }
 
 /* Keep long button labels on one line across DPI/font variants */
@@ -180,12 +290,12 @@ html, body { width: 100%; height: 100%; background: #0D1117; overflow: hidden;
 
 <!-- ── Floating top toolbar ──────────────────────────────────── -->
 <div id="toolbar">
-  <span class="title"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><text x="0" y="13" font-size="14">☁</text></svg>30-minute</span>
+  <span class="title">30-minute</span>
   <span id="regionTitle">USA National Radar</span>
   <div class="btns">
-    <button class="tb" onclick="loadUSA()" title="Show national radar">🌎 USA</button>
-    <button class="tb" onclick="refreshCurrent()" title="Re-download current radar">↻</button>
-    <button class="tb" onclick="clearCache()" title="Delete all cached GIFs">🗑 Cache</button>
+    <button class="tb" onclick="loadUSA()" title="Show national radar"><span class="tb-icon">🌎</span><span class="tb-label">USA</span></button>
+    <button class="tb" onclick="refreshCurrent()" title="Re-download current radar"><span class="tb-icon">↻</span><span class="tb-label">Refresh</span></button>
+    <button class="tb" onclick="clearCache()" title="Delete all cached GIFs"><span class="tb-icon">🗑</span><span class="tb-label">Cache</span></button>
   </div>
 </div>
 
