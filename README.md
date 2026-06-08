@@ -12,6 +12,7 @@ Also available as a ~222 KB Android APK and a ~176 KB iOS download (~445 KB inst
 ![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android)
 ![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple)
 ![watchOS](https://img.shields.io/badge/watchOS-26%2B-000000?logo=apple)
+![Garmin](https://img.shields.io/badge/Garmin%20Venu%20X1%20%2B%20D2%20Mach%202-Connect%20IQ-00A3E0)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Size](https://img.shields.io/badge/exe-~182%20KB-green)
 ![APK](https://img.shields.io/badge/apk-~222%20KB-green)
@@ -186,6 +187,29 @@ ImageIO GIF-animation stack — none of which the WebView-based platforms ship.
 
 ---
 
+### Garmin Venu X1 / D2 Mach 2 (Connect IQ)
+
+The Garmin target lives in [`garmin/`](garmin/) as a separate Connect IQ project
+targeting the Venu X1 device id `venux1` and D2 Mach 2 device id `d2mach2`. It
+mirrors the practical watchOS flow natively in Monkey C: direct AccuWeather radar
+image requests, USA / region / state selection via native Garmin menu controls,
+state redirect handling, scaled 640 x 480 radar image display, region fallback when a
+state radar image is unavailable, and a five-minute in-memory radar cache.
+
+```sh
+cd garmin
+monkeyc -f monkey.jungle -o bin/Drizzle.iq -y path/to/developer_key.der
+monkeyc -f monkey.jungle -o bin/DRZLX1.prg -y path/to/developer_key.der -d venux1
+monkeyc -f monkey.jungle -o bin/DRZLD2.prg -y path/to/developer_key.der -d d2mach2
+```
+
+This first Garmin version is intentionally isolated from the existing Windows,
+Android, and iOS build systems. It uses Garmin image requests with AccuWeather's
+640 x 480 Sirocco GIF feed so radar imagery fits the supported watch screens.
+Both Garmin targets have been compiler-verified with Connect IQ Compiler 9.1.0.
+
+---
+
 ## Publishing to the App Store
 
 iOS releases are automated with GitHub Actions
@@ -232,7 +256,11 @@ Drizzle/
 │       ├── RadarService.swift
 │       ├── GIFImage.swift
 │       └── ContentView.swift
-└── .github/workflows/    # CI: builds APK + iOS archive (includes watch target) on push
+├── garmin/               # Garmin Connect IQ target for Venu X1
+│   ├── manifest.xml
+│   ├── monkey.jungle
+│   └── source/
+└── .github/workflows/    # CI: builds Android, iOS/watch archive, and Garmin IQ/PRG artifacts
 ```
 
 ---
