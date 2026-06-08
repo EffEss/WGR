@@ -3,6 +3,9 @@
 *.user
 *.suo
 
+# Codex scaffolding (project bootstrap, local only)
+.codex/
+
 # Build output
 out/
 dist/
@@ -62,27 +65,10 @@ ios/iDrizzle/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 ios/Local.xcconfig
 ios/iDrizzleWatch Watch App/Local.xcconfig
 
-# Garmin Connect IQ
-garmin/bin/
-garmin/build/
-garmin/converter/cache/
-garmin/converter/__pycache__/
-garmin/converter/*.log
-garmin/converter/*.png
-garmin/*.der
-garmin/*.pem
-garmin/local-key-dev.der
-garmin/local-dev-key.der
-garmin/*.prg
-garmin/*.iq
-
-# Garmin "Program Materials" — device definitions are licensed by Garmin and must
-# never be committed/redistributed (Connect IQ SDK License). Keep them out of git.
-garmin/ci/devices/
-garmin/devices/
+# Garmin Connect IQ — shelved until the platform can decode/animate a live GIF
+# on-device. Entire target is kept local (untracked) for now. See garmin/ locally.
+garmin/
 **/.Garmin/
-*.tgz
-devices.b64
 
 # README screenshots (cosmetic only, not needed for builds)
 # Assets/screenshots/windows/drizzle_usa.png, Assets/screenshots/windows/drizzle_state.png,
