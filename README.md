@@ -196,12 +196,22 @@ image requests, USA / region / state selection via native Garmin menu controls,
 state redirect handling, scaled 640 x 480 radar image display, region fallback when a
 state radar image is unavailable, and a five-minute in-memory radar cache.
 
-```sh
-cd garmin
-monkeyc -f monkey.jungle -o bin/Drizzle.iq -y path/to/developer_key.der
-monkeyc -f monkey.jungle -o bin/DRZLX1.prg -y path/to/developer_key.der -d venux1
-monkeyc -f monkey.jungle -o bin/DRZLD2.prg -y path/to/developer_key.der -d d2mach2
+Like the Windows `Drizzle.exe`, the Garmin artifacts are built locally with a
+one-step script and shipped with the GitHub release (there is no Garmin CI job):
+
+```powershell
+pwsh garmin/build.ps1
 ```
+
+This produces, in the git-ignored `garmin/bin/`:
+
+- `Drizzle.iq` — Connect IQ Store bundle (all products)
+- `DRZLX1.prg` — Venu X1 side-load
+- `DRZLD2.prg` — D2 Mach 2 side-load
+
+See [`garmin/README.md`](garmin/README.md) for SDK setup, the developer key, and the
+device-definition license note. Attach the built `.iq`/`.prg` files to the release
+alongside the `.exe`.
 
 This first Garmin version is intentionally isolated from the existing Windows,
 Android, and iOS build systems. It uses Garmin image requests with AccuWeather's
@@ -260,7 +270,7 @@ Drizzle/
 │   ├── manifest.xml
 │   ├── monkey.jungle
 │   └── source/
-└── .github/workflows/    # CI: builds Android, iOS/watch archive, and Garmin IQ/PRG artifacts
+└── .github/workflows/    # CI: builds Android and iOS/watch archive
 ```
 
 ---

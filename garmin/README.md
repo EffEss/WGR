@@ -86,8 +86,12 @@ simulator.
 > **License note:** the `venux1`/`d2mach2` device definitions are Garmin
 > "Program Materials". The Connect IQ SDK License forbids redistributing or hosting
 > them, so they are never committed to this repo — install them through the SDK
-> Manager under your own developer account. CI obtains them only from a self-hosted
-> runner or the encrypted `GARMIN_CIQ_DEVICES_TGZ_BASE64` secret.
+> Manager under your own developer account.
+
+Like the Windows `Drizzle.exe`, the Garmin artifacts are built locally and shipped
+with the GitHub release. `garmin/bin/` is git-ignored, so the `.iq`/`.prg` files are
+never committed to the tree — attach the freshly built `Drizzle.iq`, `DRZLX1.prg`,
+and `DRZLD2.prg` to the release alongside the `.exe`.
 
 This project has been compiler-verified with Connect IQ Compiler 9.1.0 for both
 targets.
