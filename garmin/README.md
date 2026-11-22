@@ -1,5 +1,14 @@
 # Drizzle for Garmin Venu X1 and D2 Mach 2
 
+> **WIP — blocked on Garmin, not us.**
+> The static radar display works. Animation is on hold because Connect IQ has no
+> native GIF playback support: `makeImageRequest` decodes only the first frame of
+> an animated GIF and there is no SDK API to retrieve subsequent frames at runtime.
+> The local frame-converter workaround (see below) proves the loop logic is correct
+> but requires a PC-hosted server reachable from the watch, which isn't viable for
+> real-world use. This will be revisited if Garmin adds native animated GIF support
+> or exposes raw GIF bytes to apps.
+
 This is a standalone Garmin Connect IQ watch app target for the Venu X1 and D2
 Mach 2. It is kept outside the Windows, Android, and iOS build systems so those
 existing targets do not pick up any Garmin files.
