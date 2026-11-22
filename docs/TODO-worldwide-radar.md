@@ -45,10 +45,54 @@ The visual difference is intentional and expected:
 
 ---
 
-## What Needs Verification Before Any Code
+## URL Verification Results (tested via HTTP HEAD probes)
+
+Actual probing of `sirocco.accuweather.com` on the `mr-worldwide` branch:
+
+**CONFIRMED REAL (`200 image/gif`):**
+- `nx_mosaic_640x480_public/sir/inmasirus_.gif` — US national (existing)
+- US states and regional sectors (existing) — the only confirmed coverage.
+
+**FALSE POSITIVE (do not use):**
+- `nx_mosaic_640x480_public/sir/inmasircan.gif` returned `200`, but `can` is
+  **not Canada** — the sirocco server is case-insensitive and `inmasircan.gif`
+  resolves to the existing `inmasirCAn.gif` = **California North (NORCAL)**,
+  which the app already has. There is NO Canada radar. Lesson: case-insensitive
+  matching makes `200` responses untrustworthy unless the returned image is
+  confirmed to be a distinct region.
+
+**CONFIRMED FABRICATED (every variant returned `404`):**
+- All of Gemini's `sat_mosaic` / `ei` satellite URLs, across every tested
+  path prefix (`sat_mosaic`, `sat_ir`, `ei_mosaic`, `inmosat`, etc.), layer
+  (`ei`, `ir`, `sat`, `vis`), and filename pattern (`inmosatei{code}`,
+  `inma{code}`, `{code}`, `{code}_`).
+- International codes under the known-good radar path (`mex`, `car`, `eur`)
+  all 404 — the radar mosaic covers **the US only** (plus US-internal sectors).
+
+**Dead ends for discovery:**
+- Blind brute-force: the CDN returns `403` for any directory path and `404`
+  for any missing file, and `200` responses can collide with existing US
+  region files via case-insensitive matching — no reliable signal.
+- Scraping accuweather.com: `403` bot protection blocks scripted fetches.
+
+**The only authoritative way to find real international URLs** is a browser
+DevTools Network capture: open AccuWeather's international radar/satellite map
+in a real browser, F12 -> Network -> filter `.gif`, let it animate, and copy the
+actual requested URLs. Treat those as the source of truth; verify each with a
+HEAD probe before adding it to the region index.
+
+**Net:** the genuinely available expansion via sirocco today is North America
+(US + Canada). True global satellite depends on capturing real endpoints that
+have not yet been confirmed to exist on the public CDN.
+
+---
+
+## (Superseded) Earlier Verification Notes
 
 Gemini produced the endpoint shape and region code list, but it did not actually
-test these URLs. **Do this first, manually, before writing a line of code:**
+test these URLs — and probing proved them wrong (see results above). The list
+below is retained only as a starting point for DevTools capture, not as
+confirmed URLs:
 
 1. Confirm the sat_mosaic animated GIF URL pattern. Expected shape:
    `https://sirocco.accuweather.com/sat_mosaic_640x480_public/ei/inmosatei{code}.gif`
