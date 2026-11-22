@@ -5,6 +5,7 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
 
     private var webView: WKWebView!
     private var backgroundedAt: Date?
+    private var cacheGeneration = 0
     private let radarDir: URL = {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("radar")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -27,7 +28,8 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         (function(){try{
           var style = document.createElement('style');
           style.textContent = `
-            img[src$=".gif"], canvas { pointer-events: none !important; }
+            .leaflet-radar-pane img, .leaflet-world-base-pane canvas { pointer-events: none !important; }
+            .leaflet-hit-pane canvas { pointer-events: auto !important; }
             svg, svg * { pointer-events: auto !important; }
           `;
           document.documentElement.appendChild(style);
@@ -133,31 +135,45 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        guard let body = message.body as? String else { return }
+        guard message.frameInfo.isMainFrame, let body = message.body as? String else { return }
         let parts = body.components(separatedBy: "|")
         guard let command = parts.first else { return }
 
         switch command {
         case "DOWNLOAD":
-            guard parts.count == 3 else { return }
-            let region = parts[1]
-            let urlString = parts[2]
-            // Sanitize region
-            guard region.allSatisfy({ $0.isLetter || $0.isNumber }) else { return }
-            // Whitelist URL
-            guard urlString.hasPrefix("https://sirocco.accuweather.com/") else { return }
-            guard let url = URL(string: urlString) else { return }
-            downloadRadarGif(region: region, url: url)
+            guard parts.count == 4, isCacheKey(parts[1]) else { return }
+            let key = parts[1]
+            let legacyKey = parts[2]
+            guard legacyKey.range(of: #"\A[A-Z0-9]*\z"#, options: .regularExpression) != nil,
+                  let url = URL(string: parts[3]),
+                  url.scheme == "https", url.host == "sirocco.accuweather.com",
+                  url.user == nil, url.password == nil, url.port == nil,
+                  url.path.hasSuffix(".gif") else {
+                postRadarError(key: key, error: "Invalid download request")
+                return
+            }
+            downloadRadarGif(key: key, legacyKey: legacyKey, url: url)
+
+        case "LOOKUPCACHE":
+            guard parts.count == 2, isCacheKey(parts[1]) else { return }
+            let key = parts[1]
+            pruneExpiredRadarGifs()
+            let file = radarDir.appendingPathComponent("\(key).gif")
+            if let time = cachedGifDate(file) {
+                postRadarReady(key: key, file: file, cached: true, time: time, event: "cacheLookup")
+            } else {
+                postToWebView(["type": "cacheLookup", "key": key])
+            }
 
         case "CLEARCACHE":
             clearAllCaches {
-                self.postToWebView(json: #"{"type":"cacheCleared"}"#)
+                self.postToWebView(["type": "cacheCleared"])
             }
 
         case "CACHESIZE":
             let files = (try? FileManager.default.contentsOfDirectory(at: radarDir, includingPropertiesForKeys: [.fileSizeKey]))?.filter { $0.pathExtension == "gif" } ?? []
             let bytes = files.compactMap { try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize }.reduce(0, +)
-            postToWebView(json: #"{"type":"cacheSize","bytes":\#(bytes),"count":\#(files.count)}"#)
+            postToWebView(["type": "cacheSize", "bytes": bytes, "count": files.count])
 
         default:
             break
@@ -166,39 +182,73 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
 
     // MARK: - Networking
 
-    private func downloadRadarGif(region: String, url: URL) {
+    private func isCacheKey(_ key: String) -> Bool {
+        key.range(of: #"\A(radar|sat_ei|sat_ir)_[a-z0-9]+_?_(true|false)\z"#,
+                  options: .regularExpression) != nil
+    }
+
+    private func downloadRadarGif(key: String, legacyKey: String, url: URL) {
         pruneExpiredRadarGifs()
 
-        let dest = radarDir.appendingPathComponent("\(region).gif")
-        if isGifFresh(dest),
-           let size = try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize,
-           size > 5120 {
-            postToWebView(json: #"{"type":"radarReady","region":"\#(region)","file":"\#(region).gif"}"#)
+        let dest = radarDir.appendingPathComponent("\(key).gif")
+        let files = FileManager.default
+        if !files.fileExists(atPath: dest.path), !legacyKey.isEmpty,
+           key.hasPrefix("radar_"), key.hasSuffix("_true") {
+            let legacy = radarDir.appendingPathComponent("\(legacyKey).gif")
+            if cachedGifDate(legacy) != nil {
+                try? files.moveItem(at: legacy, to: dest)
+            }
+        }
+        if let time = cachedGifDate(dest) {
+            postRadarReady(key: key, file: dest, cached: true, time: time)
             return
         }
 
-        try? FileManager.default.removeItem(at: dest)
-
-        URLSession.shared.downloadTask(with: url) { [weak self] tempURL, response, error in
-            guard let self = self, let tempURL = tempURL, error == nil else {
-                self?.postToWebView(json: #"{"type":"radarError","region":"\#(region)","error":"Download failed"}"#)
-                return
-            }
-            let dest = self.radarDir.appendingPathComponent("\(region).gif")
-            try? FileManager.default.removeItem(at: dest)
-            do {
-                try FileManager.default.moveItem(at: tempURL, to: dest)
-                let size = (try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-                if size > 5120 {
-                    self.postToWebView(json: #"{"type":"radarReady","region":"\#(region)","file":"\#(region).gif"}"#)
-                } else {
-                    try? FileManager.default.removeItem(at: dest)
-                    self.postToWebView(json: #"{"type":"radarError","region":"\#(region)","error":"Response too small"}"#)
+        let generation = cacheGeneration
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                guard generation == self.cacheGeneration else {
+                    self.postRadarError(key: key, error: "Cache cleared")
+                    return
                 }
-            } catch {
-                self.postToWebView(json: #"{"type":"radarError","region":"\#(region)","error":"Download failed"}"#)
+                guard error == nil, let status = (response as? HTTPURLResponse)?.statusCode else {
+                    self.postRadarError(key: key, error: "Download failed")
+                    return
+                }
+                guard status == 200 else {
+                    self.postRadarError(key: key, error: "HTTP \(status)", status: status)
+                    return
+                }
+                guard let data, data.count > self.minimumGifBytes,
+                      data.starts(with: "GIF87a".utf8) || data.starts(with: "GIF89a".utf8) else {
+                    self.postRadarError(key: key, error: "Invalid GIF response")
+                    return
+                }
+                do {
+                    try FileManager.default.createDirectory(at: self.radarDir, withIntermediateDirectories: true)
+                    try data.write(to: dest, options: .atomic)
+                    let time = self.cachedGifDate(dest) ?? Date()
+                    self.postRadarReady(key: key, file: dest, cached: false, time: time)
+                } catch {
+                    self.postRadarError(key: key, error: "Could not cache GIF")
+                }
             }
         }.resume()
+    }
+
+    private func postRadarReady(key: String, file: URL, cached: Bool, time: Date, event: String = "radarReady") {
+        postToWebView([
+            "type": event, "key": key, "file": file.lastPathComponent,
+            "cached": cached, "time": Int64(time.timeIntervalSince1970 * 1000)
+        ])
+    }
+
+    private func postRadarError(key: String, error: String, status: Int? = nil) {
+        var event: [String: Any] = ["type": "radarError", "key": key, "error": error]
+        if let status { event["status"] = status }
+        postToWebView(event)
     }
 
     private func cleanRadarCache() {
@@ -209,6 +259,7 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     }
 
     private func clearAllCaches(completion: @escaping () -> Void) {
+        cacheGeneration += 1
         cleanRadarCache()
 
         URLCache.shared.removeAllCachedResponses()
@@ -241,28 +292,30 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(
             at: radarDir,
-            includingPropertiesForKeys: [.contentModificationDateKey],
+            includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles]
         ) else { return }
 
         for file in files where file.pathExtension.lowercased() == "gif" {
-            if !isGifFresh(file, now: now) {
+            if cachedGifDate(file, now: now) == nil {
                 try? fm.removeItem(at: file)
             }
         }
     }
 
-    private func isGifFresh(_ file: URL, now: Date = Date()) -> Bool {
-        guard FileManager.default.fileExists(atPath: file.path) else { return false }
-        let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
-            ?? Date.distantPast
-        return now.timeIntervalSince(modified) < staleBackgroundSeconds
+    private func cachedGifDate(_ file: URL, now: Date = Date()) -> Date? {
+        guard let info = try? file.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey]),
+              let modified = info.contentModificationDate,
+              let size = info.fileSize, size > minimumGifBytes,
+              now.timeIntervalSince(modified) < staleBackgroundSeconds else { return nil }
+        return modified
     }
 
-    private func postToWebView(json: String) {
-        let escaped = json.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
+    private func postToWebView(_ event: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: event),
+              let json = String(data: data, encoding: .utf8) else { return }
         DispatchQueue.main.async { [weak self] in
-            self?.webView.evaluateJavaScript("window.chrome.webview._dispatch('\(escaped)')")
+            self?.webView.evaluateJavaScript("window.chrome.webview._dispatch(\(json))")
         }
     }
 
@@ -273,6 +326,7 @@ class RadarViewController: UIViewController, WKScriptMessageHandler, WKNavigatio
     // MARK: - Bridge shim
 
     private let staleBackgroundSeconds: TimeInterval = 5 * 60
+    private let minimumGifBytes = 5120
 
     static let bridgeShim = """
     (function() {

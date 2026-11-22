@@ -20,7 +20,9 @@ set(COMPRESSED_JSON "${CMAKE_SOURCE_DIR}/Assets/us-states.geo.json.compressed")
 add_custom_command(
   OUTPUT ${COMPRESSED_HTML} ${COMPRESSED_JSON}
   COMMAND ${CMAKE_COMMAND} -P ${COMPRESS_SCRIPT}
-  DEPENDS "${CMAKE_SOURCE_DIR}/Assets/radar-map.html" "${CMAKE_SOURCE_DIR}/Assets/us-states.geo.json"
+  DEPENDS "${COMPRESS_SCRIPT}"
+          "${CMAKE_SOURCE_DIR}/Assets/radar-map.html"
+          "${CMAKE_SOURCE_DIR}/Assets/us-states.geo.json"
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMENT "Compressing web assets..."
 )
@@ -33,8 +35,9 @@ add_executable(WRG WIN32
 add_dependencies(WRG CompressAssets)
 set_target_properties(WRG PROPERTIES OUTPUT_NAME "Drizzle")
 
-# Ensure the .rc recompiles when the icon changes
-set_property(SOURCE WeatherGlance.rc PROPERTY OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/Assets/radar.ico")
+# Recompile the .rc when any file embedded through it changes.
+set_property(SOURCE WeatherGlance.rc PROPERTY OBJECT_DEPENDS
+  "${CMAKE_SOURCE_DIR}/Assets/radar.ico" "${COMPRESSED_HTML}" "${COMPRESSED_JSON}")
 
 # Embed our app manifest via CMake's native manifest support
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")

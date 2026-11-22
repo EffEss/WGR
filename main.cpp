@@ -16,7 +16,28 @@ using namespace Microsoft::WRL;
 #define IDR_RADAR_HTML  200
 #define IDR_STATES_JSON 201
 #define WM_RADAR_DONE (WM_USER + 1)
-struct DlResult { std::wstring region; std::wstring file; std::wstring error; };
+struct DlResult {
+    std::wstring key;
+    std::wstring file;
+    std::wstring error;
+    std::wstring event;      // "radarReady", "radarError", or "cacheLookup"
+    bool cached = false;
+    unsigned long long time = 0;
+    int status = 0;
+};
+
+static unsigned long long FileTimeToUnixMs(const FILETIME& ft) {
+    ULARGE_INTEGER u; u.LowPart = ft.dwLowDateTime; u.HighPart = ft.dwHighDateTime;
+    // 116444736000000000 = 100ns intervals between 1601 and 1970 epochs
+    return (u.QuadPart - 116444736000000000ULL) / 10000ULL;
+}
+
+// Cache keys look like radar_us__true / sat_ei_canm_true: allow alphanumerics and '_' only.
+static bool IsSafeCacheKey(const std::wstring& key) {
+    if (key.empty()) return false;
+    for (auto c : key) { if (!iswalnum(c) && c != L'_') return false; }
+    return true;
+}
 
 static HWND g_hwnd = nullptr;
 static ComPtr<ICoreWebView2Controller> g_ctrl;
@@ -65,24 +86,65 @@ static void ResizeWebView() {
     RECT rc; GetClientRect(g_hwnd, &rc); g_ctrl->put_Bounds(rc);
 }
 
-static void DownloadRadarGif(std::wstring url, std::wstring region) {
-    // Sanitize region name: only allow alphanumeric characters
-    for (auto c : region) { if (!iswalnum(c)) return; }
+static void DownloadRadarGif(std::wstring url, std::wstring key) {
+    if (!IsSafeCacheKey(key)) return;
     auto dir = GetRadarDir();
-    auto dest = dir + L"\\" + region + L".gif";
+    auto dest = dir + L"\\" + key + L".gif";
     auto* r = new DlResult();
-    r->region = region;
-    HRESULT hr = URLDownloadToFileW(nullptr, url.c_str(), dest.c_str(), 0, nullptr);
+    r->key = key;
+    r->event = L"radarError";
+
+    // Serve from cache if already present.
+    WIN32_FILE_ATTRIBUTE_DATA fad;
+    if (GetFileAttributesExW(dest.c_str(), GetFileExInfoStandard, &fad) && fad.nFileSizeLow > 5120) {
+        r->event = L"radarReady";
+        r->file = key + L".gif";
+        r->cached = true;
+        r->time = FileTimeToUnixMs(fad.ftLastWriteTime);
+        PostMessage(g_hwnd, WM_RADAR_DONE, 0, (LPARAM)r);
+        return;
+    }
+
+    auto tmp = dest + L".tmp";
+    HRESULT hr = URLDownloadToFileW(nullptr, url.c_str(), tmp.c_str(), 0, nullptr);
     if (SUCCEEDED(hr)) {
-        WIN32_FILE_ATTRIBUTE_DATA fad;
-        if (GetFileAttributesExW(dest.c_str(), GetFileExInfoStandard, &fad) && fad.nFileSizeLow > 5120) {
-            r->file = region + L".gif";
+        if (GetFileAttributesExW(tmp.c_str(), GetFileExInfoStandard, &fad) && fad.nFileSizeLow > 5120) {
+            DeleteFileW(dest.c_str());
+            if (MoveFileW(tmp.c_str(), dest.c_str())) {
+                r->event = L"radarReady";
+                r->file = key + L".gif";
+                r->cached = false;
+                WIN32_FILE_ATTRIBUTE_DATA fd2;
+                if (GetFileAttributesExW(dest.c_str(), GetFileExInfoStandard, &fd2))
+                    r->time = FileTimeToUnixMs(fd2.ftLastWriteTime);
+            } else {
+                r->error = L"Could not cache GIF";
+                DeleteFileW(tmp.c_str());
+            }
         } else {
             r->error = L"Response too small";
-            DeleteFileW(dest.c_str());
+            r->status = 404;
+            DeleteFileW(tmp.c_str());
         }
     } else {
         r->error = L"Download failed";
+        r->status = 404;
+    }
+    PostMessage(g_hwnd, WM_RADAR_DONE, 0, (LPARAM)r);
+}
+
+static void LookupRadarCache(std::wstring key) {
+    if (!IsSafeCacheKey(key)) return;
+    auto dir = GetRadarDir();
+    auto dest = dir + L"\\" + key + L".gif";
+    auto* r = new DlResult();
+    r->key = key;
+    r->event = L"cacheLookup";
+    WIN32_FILE_ATTRIBUTE_DATA fad;
+    if (GetFileAttributesExW(dest.c_str(), GetFileExInfoStandard, &fad) && fad.nFileSizeLow > 5120) {
+        r->file = key + L".gif";
+        r->cached = true;
+        r->time = FileTimeToUnixMs(fad.ftLastWriteTime);
     }
     PostMessage(g_hwnd, WM_RADAR_DONE, 0, (LPARAM)r);
 }
@@ -105,12 +167,15 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         auto* r = (DlResult*)lp;
         if (g_webview) {
             wchar_t json[512];
-            if (r->error.empty()) {
-                swprintf_s(json, L"{\"type\":\"radarReady\",\"region\":\"%s\",\"file\":\"%s\"}",
-                    r->region.c_str(), r->file.c_str());
+            if (r->event == L"radarError") {
+                swprintf_s(json, L"{\"type\":\"radarError\",\"key\":\"%s\",\"status\":%d,\"error\":\"%s\"}",
+                    r->key.c_str(), r->status, r->error.c_str());
             } else {
-                swprintf_s(json, L"{\"type\":\"radarError\",\"region\":\"%s\",\"error\":\"%s\"}",
-                    r->region.c_str(), r->error.c_str());
+                // radarReady or cacheLookup; file may be empty for a cache miss
+                swprintf_s(json,
+                    L"{\"type\":\"%s\",\"key\":\"%s\",\"file\":\"%s\",\"cached\":%s,\"time\":%llu}",
+                    r->event.c_str(), r->key.c_str(), r->file.c_str(),
+                    r->cached ? L"true" : L"false", r->time);
             }
             g_webview->PostWebMessageAsJson(json);
         }
@@ -208,18 +273,22 @@ static void InitWebView() {
                             if (msgRaw) {
                                 std::wstring m(msgRaw);
                                 CoTaskMemFree(msgRaw);
-                                // Parse: "DOWNLOAD|region|url"
+                                // Parse: "DOWNLOAD|key|legacyKey|url"
                                 auto p1 = m.find(L'|');
                                 if (p1 != std::wstring::npos && m.substr(0, p1) == L"DOWNLOAD") {
                                     auto p2 = m.find(L'|', p1 + 1);
-                                    if (p2 != std::wstring::npos) {
-                                        auto region = m.substr(p1 + 1, p2 - p1 - 1);
-                                        auto url = m.substr(p2 + 1);
+                                    auto p3 = (p2 != std::wstring::npos) ? m.find(L'|', p2 + 1) : std::wstring::npos;
+                                    if (p3 != std::wstring::npos) {
+                                        auto key = m.substr(p1 + 1, p2 - p1 - 1);
+                                        auto url = m.substr(p3 + 1);
                                         // Only allow downloads from the known radar source
                                         const std::wstring allowedPrefix = L"https://sirocco.accuweather.com/";
                                         if (url.substr(0, allowedPrefix.size()) == allowedPrefix)
-                                            std::thread(DownloadRadarGif, url, region).detach();
+                                            std::thread(DownloadRadarGif, url, key).detach();
                                     }
+                                } else if (p1 != std::wstring::npos && m.substr(0, p1) == L"LOOKUPCACHE") {
+                                    auto key = m.substr(p1 + 1);
+                                    std::thread(LookupRadarCache, key).detach();
                                 } else if (p1 != std::wstring::npos && m.substr(0, p1) == L"CLEARCACHE") {
                                     CleanRadarCache();
                                     if (g_webview) g_webview->PostWebMessageAsJson(L"{\"type\":\"cacheCleared\"}");

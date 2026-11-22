@@ -10,8 +10,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.*
-import org.json.JSONObject
+import java.io.DataInputStream
 import java.io.File
+import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -22,6 +23,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var insetsController: WindowInsetsControllerCompat
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var backgroundedAtMs: Long = 0L
+    private val radarCacheLock = Any()
+    private var cacheGeneration = 0
 
     private val radarDir: File by lazy {
         File(filesDir, "radar").also { it.mkdirs() }
@@ -141,17 +144,28 @@ class MainActivity : ComponentActivity() {
     inner class JsBridge {
         @JavascriptInterface
         fun postMessage(message: String) {
-            val parts = message.split("|", limit = 3)
+            val parts = message.split("|", limit = 4)
             when (parts[0]) {
                 "DOWNLOAD" -> {
-                    if (parts.size == 3) {
-                        val region = parts[1]
-                        val url = parts[2]
-                        // Sanitize region
-                        if (!region.matches(Regex("^[a-zA-Z0-9]+$"))) return
-                        // Whitelist URL
-                        if (!url.startsWith("https://sirocco.accuweather.com/")) return
-                        scope.launch { downloadRadarGif(region, url) }
+                    if (parts.size != 4) return
+                    val (_, key, legacyKey, url) = parts
+                    if (!CACHE_KEY.matches(key) || !LEGACY_KEY.matches(legacyKey)) return
+                    if (!url.startsWith(SIROCCO_BASE)) return
+                    scope.launch { downloadRadarGif(key, legacyKey, url) }
+                }
+                "LOOKUPCACHE" -> {
+                    val key = parts.getOrNull(1) ?: return
+                    if (!CACHE_KEY.matches(key)) return
+                    scope.launch {
+                        synchronized(radarCacheLock) {
+                            pruneExpiredRadarGifs()
+                            val file = File(radarDir, "$key.gif")
+                            if (file.length() > MIN_GIF_BYTES) {
+                                postRadarReady(key, file, cached = true, event = "cacheLookup")
+                            } else {
+                                postToWebView("""{"type":"cacheLookup","key":"$key"}""")
+                            }
+                        }
                     }
                 }
                 "CLEARCACHE" -> {
@@ -161,43 +175,79 @@ class MainActivity : ComponentActivity() {
                         postCacheSize()
                     }
                 }
-                "CACHESIZE" -> {
-                    val files = radarDir.listFiles()?.filter { it.extension == "gif" } ?: emptyList()
-                    val bytes = files.sumOf { it.length() }
-                    postToWebView("""{"type":"cacheSize","bytes":$bytes,"count":${files.size}}""")
-                }
+                "CACHESIZE" -> postCacheSize()
             }
         }
     }
 
-    private suspend fun downloadRadarGif(region: String, url: String) {
+    private fun downloadRadarGif(key: String, legacyKey: String, url: String) {
+        val dest = File(radarDir, "$key.gif")
+        var temporary: File? = null
         try {
-            val now = System.currentTimeMillis()
-            pruneExpiredRadarGifs(now)
-
-            val dest = File(radarDir, "$region.gif")
-            // Reuse only if this file is still fresh (<= 5 minutes old).
-            if (isGifFresh(dest, now) && dest.length() > 5120) {
-                postToWebView("""{"type":"radarReady","region":"$region","file":"$region.gif"}""")
-                return
+            val generation = synchronized(radarCacheLock) {
+                pruneExpiredRadarGifs()
+                val hasLegacyEntry = legacyKey.isNotEmpty() && key.startsWith("radar_") && key.endsWith("_true")
+                if (!dest.exists() && hasLegacyEntry) {
+                    val legacy = File(radarDir, "$legacyKey.gif")
+                    if (legacy.length() > MIN_GIF_BYTES) legacy.renameTo(dest)
+                }
+                if (dest.length() > MIN_GIF_BYTES) {
+                    postRadarReady(key, dest, cached = true)
+                    return
+                }
+                cacheGeneration
             }
 
-            if (dest.exists()) {
-                dest.delete()
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.connectTimeout = NETWORK_TIMEOUT_MS
+            connection.readTimeout = NETWORK_TIMEOUT_MS
+            try {
+                val status = connection.responseCode
+                if (status != HttpURLConnection.HTTP_OK) {
+                    postRadarError(key, "HTTP $status", status)
+                    return
+                }
+                val download = File.createTempFile("sirocco-", ".tmp", radarDir)
+                temporary = download
+                connection.inputStream.use { input ->
+                    download.outputStream().use { output -> input.copyTo(output) }
+                }
+                if (download.length() <= MIN_GIF_BYTES || !hasGifHeader(download)) {
+                    postRadarError(key, "Invalid GIF response")
+                    return
+                }
+                synchronized(radarCacheLock) {
+                    when {
+                        generation != cacheGeneration -> postRadarError(key, "Cache cleared")
+                        download.renameTo(dest) -> postRadarReady(key, dest, cached = false)
+                        else -> postRadarError(key, "Could not cache GIF")
+                    }
+                }
+            } finally {
+                connection.disconnect()
             }
-
-            URL(url).openStream().use { input ->
-                dest.outputStream().use { output -> input.copyTo(output) }
-            }
-            if (dest.length() > 5120) {
-                postToWebView("""{"type":"radarReady","region":"$region","file":"$region.gif"}""")
-            } else {
-                dest.delete()
-                postToWebView("""{"type":"radarError","region":"$region","error":"Response too small"}""")
-            }
-        } catch (e: Exception) {
-            postToWebView("""{"type":"radarError","region":"$region","error":"Download failed"}""")
+        } catch (_: Exception) {
+            postRadarError(key, "Download failed")
+        } finally {
+            temporary?.delete()
         }
+    }
+
+    private fun hasGifHeader(file: File): Boolean = DataInputStream(file.inputStream()).use { input ->
+        val bytes = ByteArray(6)
+        input.readFully(bytes)
+        val header = String(bytes, Charsets.US_ASCII)
+        header == "GIF87a" || header == "GIF89a"
+    }
+
+    private fun postRadarReady(key: String, file: File, cached: Boolean, event: String = "radarReady") {
+        postToWebView(
+            """{"type":"$event","key":"$key","file":"${file.name}","cached":$cached,"time":${file.lastModified()}}"""
+        )
+    }
+
+    private fun postRadarError(key: String, error: String, status: Int? = null) {
+        postToWebView("""{"type":"radarError","key":"$key","status":$status,"error":"$error"}""")
     }
 
     private fun clearAllAppCaches() {
@@ -237,20 +287,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun pruneExpiredRadarGifs(nowMs: Long = System.currentTimeMillis()) {
-        radarDir.listFiles()?.forEach { file ->
-            if (file.extension.equals("gif", ignoreCase = true) && !isGifFresh(file, nowMs)) {
-                file.delete()
+        synchronized(radarCacheLock) {
+            radarDir.listFiles()?.forEach { file ->
+                if (file.extension == "gif" && nowMs - file.lastModified() >= STALE_BACKGROUND_MS) {
+                    file.delete()
+                }
             }
         }
     }
 
-    private fun isGifFresh(file: File, nowMs: Long = System.currentTimeMillis()): Boolean {
-        if (!file.exists()) return false
-        return (nowMs - file.lastModified()) < STALE_BACKGROUND_MS
-    }
-
     private fun clearRadarGifs() {
-        radarDir.listFiles()?.forEach { it.delete() }
+        synchronized(radarCacheLock) {
+            cacheGeneration++
+            radarDir.listFiles()?.filter { it.extension == "gif" }?.forEach { it.delete() }
+        }
     }
 
     private fun postCacheSize() {
@@ -270,6 +320,11 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val STALE_BACKGROUND_MS = 5 * 60 * 1000L
+        private const val NETWORK_TIMEOUT_MS = 15_000
+        private const val MIN_GIF_BYTES = 5120L
+        private const val SIROCCO_BASE = "https://sirocco.accuweather.com/"
+        private val CACHE_KEY = Regex("^(radar|sat_ei|sat_ir)_[a-z0-9]+_?_(true|false)$")
+        private val LEGACY_KEY = Regex("^[A-Z0-9]*$")
 
         // Raw JS shim injected into <head> before any page scripts run
         private const val BRIDGE_SHIM_RAW = """

@@ -1,0 +1,44 @@
+{
+  "sample_date": "2026-11-22",
+  "fit_fields": [
+    "west_seam_deg_e",
+    "x_pixels_per_degree",
+    "equator_row_px",
+    "y_pixels_per_mercator_degree"
+  ],
+  "files": {
+    "countries.geojson": {
+      "sha256": "3e458fc036ad0a66411f2c1e6cac49c5d7bfb81cb1123bc513b22511a2b7fdeb"
+    },
+    "world.gif": {
+      "sha256": "fe2c909dec0281c0b517560abea6907f155555b798861898cebc63d56cb08956",
+      "parameters": [
+        75.35167786479295,
+        1.7783229982171025,
+        240.1619044580102,
+        2.664438441895226
+      ],
+      "score_px": 0.28329911844317746
+    },
+    "world_ir.gif": {
+      "sha256": "ce20af2b7f4af06ef78acd2f40e1634e6562e91bee48ab9881a6252f01904dc5",
+      "parameters": [
+        75.35167786479295,
+        1.7783229982171025,
+        240.1619044580102,
+        2.664438441895226
+      ],
+      "score_px": 0.28329911844317746
+    },
+    "world_loop.gif": {
+      "sha256": "4ec64fe5714bdc24bb793a12c8fee31aa92f18d706eab41079d18d97105fd170",
+      "parameters": [
+        75.35005596412115,
+        1.778311915109544,
+        240.17448291739217,
+        2.664675031486666
+      ],
+      "score_px": 0.28307818908121607
+    }
+  }
+}
