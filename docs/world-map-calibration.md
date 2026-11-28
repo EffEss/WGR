@@ -1,6 +1,6 @@
 # World map calibration
 
-The World view uses AccuWeather Sirocco's 640×480 Pacific-centered `wmerc` raster. Country hit areas come from Natural Earth's 1:50m admin-0 countries and territories. The calibrated coverage applies to `wmerc` only. Dedicated regional mosaics have their own image geometry, and the U.S. Lambert Conformal Conic calibration stays in place.
+The World view uses AccuWeather Sirocco's 640×480 Pacific-centered `wmerc` raster. Country hit areas come from Natural Earth's 1:50m admin-0 countries and territories. The World fit applies to `wmerc`. Regional mosaics have separate calibrations, and the U.S. Lambert Conformal Conic calibration stays in place.
 
 ## Measured fit
 
@@ -46,3 +46,18 @@ python docs/world-map-calibration/pack.py PATH_TO_SCRATCH
 ```
 
 `fit.py` writes the fitted values and overlay PNGs to the scratch directory. `pack.py` uses the shipped fit, simplifies and quantizes the projected polygons to 1/8 px, and writes `world-country-data.json`. Replace the JSON inside `<script id="worldCountryData" type="application/json">` in `Assets/radar-map.html` with that output when updating the dataset. If the fit changes, update the constants in both the packer and HTML before regenerating the data. The shipped snapshot contains 242 named areas and 23,290 projected vertices.
+
+## Regional mosaics
+
+The [regional projection manifest](world-map-calibration/regional-projections.json) records each fitted projection, validation results, and sample hashes. The code chooses country polygons by the actual Sirocco filename code, so `samn` uses the `nsam` calibration, and Europe, Western Europe, and Eastern Europe share `eurm`. The calibrated outlines and click targets share the same geometry. The regional renderer uses a thin outline at rest and highlights the country on hover.
+
+The regional packer adds half a pixel on each axis to convert fitted pixel indices to positions within the image. Packed regional Y coordinates count downward from the top. The HTML decoder converts them to Leaflet coordinates with `leafletY = 480 - imageY`. The packer clips to the image edges and includes wrapped land on images that cross 180° longitude. Validation compared the still and the first and last animation frames. On the three fallback palettes with pale or missing national borders (`nsam`, `ssam`, and `canm`), compare the coastline overlays instead of interpreting the dark-border score as an alignment error. The separate Alaska satellite, Puerto Rico radar, and `cn_` Canada radar frames are still served, with calibrated country outlines pending.
+
+To regenerate a regional dataset, put the source GeoJSON and selected GIF in the scratch directory. Use the manifest's four values in the order shown:
+
+```powershell
+python docs/world-map-calibration/pack_region.py PATH_TO_SCRATCH CODE LONGITUDE SX EQUATOR_ROW SY 0.6 --pixel-center
+python docs/world-map-calibration/verify_region.py PATH_TO_SCRATCH CODE
+```
+
+After reviewing the overlay PNG, copy only the generated `CODE-country-data.json` into `docs/world-map-calibration/` and run `python docs/world-map-calibration/embed_regions.py` from the repository root. The November 23 comparison GIFs, fitted overlays, and alternative projection trials are retained in the experiment copy at `.regional-completion-work/`.

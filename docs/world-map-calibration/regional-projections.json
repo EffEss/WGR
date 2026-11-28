@@ -1,0 +1,1155 @@
+{
+  "geometry": "Natural Earth 1:50m admin-0",
+  "pixel_size": [
+    640,
+    480
+  ],
+  "pixel_center_offset": [
+    0.5,
+    0.5
+  ],
+  "fields": [
+    "west_longitude",
+    "x_pixels_per_degree",
+    "equator_row",
+    "y_pixels_per_mercator_degree"
+  ],
+  "regions": {
+    "nsam": {
+      "model": "merc",
+      "parameters": [
+        -84.76107636315075,
+        11.702579653638159,
+        148.09878618793198,
+        9.683104623983413
+      ],
+      "score": 0.4786251698644039,
+      "edge_stats": [
+        0.4786251698644039,
+        0.9391194968553459,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "nsam.gif",
+          "sha256": "463b8801730cd3b11bad34088bc0dc271d7f12381883678a6542b9cd86c756b6",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.454,
+              "within_1px": 0.943
+            }
+          ]
+        },
+        "loop": {
+          "sample": "nsam-animated.gif",
+          "sha256": "9f9de3f4bc80d19d880c02cbf16bd3fb5582bc6ba1bafd04223354f609267f68",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.455,
+              "within_1px": 0.943
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.454,
+              "within_1px": 0.943
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "nsam-ir.gif",
+          "sha256": "c96bc8ac0e31525ad86ccb8842dca0fbb4d78c9286644257b17eb81171b01984",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 6.829,
+              "within_1px": 0.011
+            }
+          ],
+          "method": "Visual coastline overlay. The dark-border metric is not comparable on this IR palette."
+        }
+      }
+    },
+    "ssam": {
+      "model": "merc",
+      "parameters": [
+        -82.64575014699713,
+        14.843642742166423,
+        -388.29740342074234,
+        12.31568688228495
+      ],
+      "score": 1.0523915226586988,
+      "edge_stats": [
+        1.0523915226586988,
+        0.6176703645007924,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "ssam.gif",
+          "sha256": "aa5261e1009258b8008b63ba181978574147aa760f08a2a3d448770490c0b683",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.01,
+              "within_1px": 0.643
+            }
+          ]
+        },
+        "loop": {
+          "sample": "ssam-animated.gif",
+          "sha256": "56e478f9c502e210ed85b1d484a27ec78321b9c004275a415910585a098fddbe",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.01,
+              "within_1px": 0.643
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.01,
+              "within_1px": 0.643
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "ssam-ir.gif",
+          "sha256": "9aa1a8682c6a81cae1ea5b3f5bdbe7f4251aa177531e348016e1108f71687897",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 6.942,
+              "within_1px": 0.005
+            }
+          ],
+          "method": "Visual coastline overlay. The dark-border metric is not comparable on this IR palette."
+        }
+      }
+    },
+    "afrn": {
+      "model": "merc",
+      "parameters": [
+        -27.145828509785655,
+        6.942632997175448,
+        300.41488150497315,
+        6.938388773862712
+      ],
+      "score": 0.766407934070589,
+      "edge_stats": [
+        0.7140689268414253,
+        0.8291305224934437,
+        0.9914
+      ],
+      "validation": {
+        "still": {
+          "sample": "afrn.gif",
+          "sha256": "388b81f81eb459b146cc7a93c12e882b00f48bd39bc19a3290eceec9f58a4aa2",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.698,
+              "within_1px": 0.837
+            }
+          ]
+        },
+        "loop": {
+          "sample": "afrn-animated.gif",
+          "sha256": "45f12ebb6694929afc06333cecbbc07064bdb91f748217e3043bbef8f83700d6",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.698,
+              "within_1px": 0.837
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.698,
+              "within_1px": 0.837
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "afrn-ir.gif",
+          "sha256": "5a9c024c2abafd4bac8e31aa6c9f6ed76a599384112e457ab4afa8f6779669c9",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.698,
+              "within_1px": 0.837
+            }
+          ]
+        }
+      }
+    },
+    "afrs": {
+      "model": "merc",
+      "parameters": [
+        -27.15031824786488,
+        6.941822246108552,
+        196.20385470419637,
+        6.937455495171052
+      ],
+      "score": 0.6954810644406595,
+      "edge_stats": [
+        0.6954810644406595,
+        0.8408,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "afrs.gif",
+          "sha256": "a3ddd1335641db6cf63ed0c8e1e0752bf582c1827c1549db702f1152b39aa1dd",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.695,
+              "within_1px": 0.841
+            }
+          ]
+        },
+        "loop": {
+          "sample": "afrs-animated.gif",
+          "sha256": "2b92c9fc5378473eb969aedc75a17894ae8f75756c86686a350fa6ca4c28bd11",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.695,
+              "within_1px": 0.841
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.696,
+              "within_1px": 0.84
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "afrs-ir.gif",
+          "sha256": "7ed1400b32784ec66faed6ad6db93c25bf9ca9651d1156e1aa9437ad00db2d94",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.696,
+              "within_1px": 0.84
+            }
+          ]
+        }
+      }
+    },
+    "mex": {
+      "model": "merc",
+      "parameters": [
+        -120.60778330549991,
+        16.495457922181124,
+        659.2234260268641,
+        17.5261093522871
+      ],
+      "score": 0.8534122328212626,
+      "edge_stats": [
+        0.8534122328212626,
+        0.6788581623550402,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "mex.gif",
+          "sha256": "72ff6e386ee1444f94fa2bdd0d085f6e654f14c840eb04c9c5f2e3cf1086e9ac",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.827,
+              "within_1px": 0.698
+            }
+          ]
+        },
+        "loop": {
+          "sample": "mex-animated.gif",
+          "sha256": "bf321429480002f1067bc3919c0c63755ea352fc00c3aa85b3b188bb7c89a942",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.828,
+              "within_1px": 0.697
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.828,
+              "within_1px": 0.697
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "mex-ir.gif",
+          "sha256": "bdb3a0c4ce9a880dc2ef986bf52a7e541fcc83d9b04dd8e395b2de3782e390aa",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.828,
+              "within_1px": 0.697
+            }
+          ]
+        }
+      }
+    },
+    "cam": {
+      "model": "merc",
+      "parameters": [
+        -98.75206585974288,
+        23.556475506634712,
+        576.04093596144,
+        26.28626888239181
+      ],
+      "score": 0.8661427391942494,
+      "edge_stats": [
+        0.8197844793442046,
+        0.7005208333333334,
+        0.9922480620155039
+      ],
+      "validation": {
+        "still": {
+          "sample": "cam.gif",
+          "sha256": "d22a4fb103a96421b246a894298390c8e9c746c7c704a8b6250837510ae4e7f1",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.809,
+              "within_1px": 0.706
+            }
+          ]
+        },
+        "loop": {
+          "sample": "cam-animated.gif",
+          "sha256": "dc86e28bc759da0c820c861f58fa02eebc4c543533d4d0fd64357953cf2abd1d",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.809,
+              "within_1px": 0.706
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.809,
+              "within_1px": 0.706
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "cam-ir.gif",
+          "sha256": "b8a3ce4ad013cff4555490dc1d597ab7f4e07c0215723aa27685571a84092b9e",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.809,
+              "within_1px": 0.706
+            }
+          ]
+        }
+      }
+    },
+    "car": {
+      "model": "merc",
+      "parameters": [
+        -93.78983809165868,
+        15.270660761913883,
+        556.4735390586467,
+        14.94090901876086
+      ],
+      "score": 0.6379993020778602,
+      "edge_stats": [
+        0.6379993020778602,
+        0.863384188626907,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "car.gif",
+          "sha256": "4302617a0095e8775ef575adb34370b9541bf3b47892e55e4b2ad6095f0371cb",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.656,
+              "within_1px": 0.856
+            }
+          ]
+        },
+        "loop": {
+          "sample": "car-animated.gif",
+          "sha256": "8bb928e3819c38ca5dbb62a5c336d3f150d25bd62c5e9416377535ad2ed32917",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.656,
+              "within_1px": 0.856
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.656,
+              "within_1px": 0.856
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "car-ir.gif",
+          "sha256": "293f1d8fc63e13a7c4f7d68216365ed0770fb020845979bac0cab817633e2eeb",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.656,
+              "within_1px": 0.856
+            }
+          ]
+        }
+      }
+    },
+    "epac": {
+      "model": "merc",
+      "parameters": [
+        -133.29162276372392,
+        12.559117528097616,
+        480.310451145514,
+        12.17708243773404
+      ],
+      "score": 0.7818570271943938,
+      "edge_stats": [
+        0.7818570271943938,
+        0.7544180377818404,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "epac.gif",
+          "sha256": "4c7780109e99f9cb7c7d53dcbbbbd49c26427bb087655e9e5899d60233d96dbe",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.726,
+              "within_1px": 0.786
+            }
+          ]
+        },
+        "loop": {
+          "sample": "epac-animated.gif",
+          "sha256": "bcd451cbe376b218688f96877bd25da5da918665148789207e4a94df1c9a7e5b",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.726,
+              "within_1px": 0.786
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.726,
+              "within_1px": 0.787
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "epac-ir.gif",
+          "sha256": "abdc800a63c271ba9d94332ba537c36706ebe3f9d86b8951681e3bd6b5348a42",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.726,
+              "within_1px": 0.787
+            }
+          ]
+        }
+      }
+    },
+    "hatl": {
+      "model": "merc",
+      "parameters": [
+        -113.94570383050473,
+        5.936942313295354,
+        361.07922468600543,
+        5.918156018444966
+      ],
+      "score": 1.8713037738654201,
+      "edge_stats": [
+        0.7256886540121027,
+        0.8232684249445403,
+        0.8114
+      ],
+      "validation": {
+        "still": {
+          "sample": "hatl.gif",
+          "sha256": "17474ed4344f8492f10dcd7ddb7f919336d0c89106e3e576c6d4d1cc34fbe6a2",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.712,
+              "within_1px": 0.831
+            }
+          ]
+        },
+        "loop": {
+          "sample": "hatl-animated.gif",
+          "sha256": "7695f16d50b67d3bb605f2f59abfe05bdac1797427be177dc9a3aef1c78c2796",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.712,
+              "within_1px": 0.831
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.712,
+              "within_1px": 0.831
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "hatl-ir.gif",
+          "sha256": "ce40bb76135835e88ffe407fac5e5c7990a8ab8aa44661805fa89b57334f27d7",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.712,
+              "within_1px": 0.831
+            }
+          ]
+        }
+      }
+    },
+    "eur3": {
+      "model": "merc",
+      "parameters": [
+        -29.95663738798748,
+        9.708419092710635,
+        779.4913824201217,
+        8.548165019549781
+      ],
+      "score": 0.6990550035293032,
+      "edge_stats": [
+        0.6374292964942456,
+        0.8686868686868687,
+        0.99
+      ],
+      "validation": {
+        "still": {
+          "sample": "eur3.gif",
+          "sha256": "2bd9aa75ea19d832fbfa38bc9848fe8973eb8750cb489cfe5575146140f36c62",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.624,
+              "within_1px": 0.873
+            }
+          ]
+        },
+        "loop": {
+          "sample": "eur3-animated.gif",
+          "sha256": "6c02d0dc04c62bddeaf171cade6c48b2135b8860462c75fdb954151b85ee4d42",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.623,
+              "within_1px": 0.873
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.623,
+              "within_1px": 0.873
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "eur3-ir.gif",
+          "sha256": "3b971ff5b4099cfdf5ed59fc0dcc1064839f6c5dcaedd960060f3ce1d9b4ed0b",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.623,
+              "within_1px": 0.873
+            }
+          ]
+        }
+      }
+    },
+    "uk": {
+      "model": "merc",
+      "parameters": [
+        -41.03316399602239,
+        8.321019806458498,
+        765.4263149063313,
+        7.822094347187136
+      ],
+      "score": 0.7401263081072341,
+      "edge_stats": [
+        0.7157894659711186,
+        0.8795180722891566,
+        0.996
+      ],
+      "validation": {
+        "still": {
+          "sample": "uk.gif",
+          "sha256": "27a129d1ff2b74e36c1cc64bfb02ae6ccf3229e8bb25a22b77a832c4b1bbc02e",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.593,
+              "within_1px": 0.906
+            }
+          ]
+        },
+        "loop": {
+          "sample": "uk-animated.gif",
+          "sha256": "fb38d3291017af9360cbd747dd3b9e1f302dbf27d1ca87d23ca109248cc52407",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.592,
+              "within_1px": 0.906
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.592,
+              "within_1px": 0.906
+            }
+          ]
+        }
+      }
+    },
+    "mide": {
+      "model": "merc",
+      "parameters": [
+        15.781777551152217,
+        6.921170804086209,
+        448.7228611305352,
+        6.9533938992881
+      ],
+      "score": 1.2080506089037475,
+      "edge_stats": [
+        1.1584045691119325,
+        0.6747376916868443,
+        0.9912
+      ],
+      "validation": {
+        "still": {
+          "sample": "mide.gif",
+          "sha256": "4d15269ca9cbef86936aae6257705e13f6b09b8e8c205d8711fe5a31a2d7b4b5",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.169,
+              "within_1px": 0.68
+            }
+          ]
+        },
+        "loop": {
+          "sample": "mide-animated.gif",
+          "sha256": "03f4008fa56eda8bfe2590f064ba8206cd9ad0bad65446b6341579d7c163bb05",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.169,
+              "within_1px": 0.679
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.169,
+              "within_1px": 0.68
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "mide-ir.gif",
+          "sha256": "6977b52b5fee0a2d4c15a83426bb20ab5629ef94edc2e6766b64ce19f2d7dccc",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.169,
+              "within_1px": 0.68
+            }
+          ]
+        }
+      }
+    },
+    "asia": {
+      "model": "merc",
+      "parameters": [
+        56.976771736666386,
+        6.929915516255222,
+        495.8783514043587,
+        6.955494504613588
+      ],
+      "score": 1.1255732358202561,
+      "edge_stats": [
+        1.0717274740765759,
+        0.6731273975368464,
+        0.9906
+      ],
+      "validation": {
+        "still": {
+          "sample": "asia.gif",
+          "sha256": "f0f5172b52a82b1566fb523b8380912f75e7f091dc04689be60521244d460239",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.085,
+              "within_1px": 0.674
+            }
+          ]
+        },
+        "loop": {
+          "sample": "asia-animated.gif",
+          "sha256": "a9a3a6775d062c8d2945a24a55d1d459583df723b8eae481509728af625e5a86",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.085,
+              "within_1px": 0.674
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.085,
+              "within_1px": 0.674
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "asia-ir.gif",
+          "sha256": "201d4241e381384b127d793af9e3f629a00315d97e19f698f02dd91faaa4f384",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.084,
+              "within_1px": 0.675
+            }
+          ]
+        }
+      }
+    },
+    "easia": {
+      "model": "merc",
+      "parameters": [
+        109.30108019014696,
+        11.23602994860233,
+        572.2364082294541,
+        7.18182318855974
+      ],
+      "score": 0.2634242163332972,
+      "edge_stats": [
+        0.2634242163332972,
+        0.9688046647230321,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "easia.gif",
+          "sha256": "e61418e95a48d6c193602da6da240131a88569d9b4cc2e15e58bf936996b1907",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.258,
+              "within_1px": 0.975
+            }
+          ]
+        },
+        "loop": {
+          "sample": "easia-animated.gif",
+          "sha256": "f687cf4269ab1abf968df034644681b0f53d2d59471c600df78114b6a6c0a0d2",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.258,
+              "within_1px": 0.975
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.258,
+              "within_1px": 0.975
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "easia-ir.gif",
+          "sha256": "5f552b452fa2b6d200f7b656d43b80a11c53dcf2ddecda31e0daba9ef7dfcca1",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.258,
+              "within_1px": 0.975
+            }
+          ]
+        }
+      }
+    },
+    "india": {
+      "model": "merc",
+      "parameters": [
+        60.00936857428252,
+        13.916954276381475,
+        537.9318486939167,
+        13.8920936142868
+      ],
+      "score": 0.806112647370847,
+      "edge_stats": [
+        0.806112647370847,
+        0.8090169067000627,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "india.gif",
+          "sha256": "8362f54134d4242672d6aed21eaf6466b6676e34061656ed6eb671870e22dcbb",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.851,
+              "within_1px": 0.815
+            }
+          ]
+        },
+        "loop": {
+          "sample": "india-animated.gif",
+          "sha256": "74309eb94e5531d1e5fc8224054c9b7780a219df322482ba3fc444db6b19d5f7",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.851,
+              "within_1px": 0.815
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.852,
+              "within_1px": 0.815
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "india-ir.gif",
+          "sha256": "50bba53b10e84417be2828e4dfaaf7fec11274721e784cc0a59931d950cc2c90",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.852,
+              "within_1px": 0.815
+            }
+          ]
+        }
+      }
+    },
+    "indo": {
+      "model": "merc",
+      "parameters": [
+        20.034674963919045,
+        5.736650088060632,
+        200.0505260268119,
+        6.643117622373996
+      ],
+      "score": 1.5222068161811553,
+      "edge_stats": [
+        0.8228842765358496,
+        0.7546998867497169,
+        0.883
+      ],
+      "validation": {
+        "still": {
+          "sample": "indo.gif",
+          "sha256": "56746a45a898d0508b394eef342860d2901f6714229d57a535a7b722ba4d8b4c",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.831,
+              "within_1px": 0.752
+            }
+          ]
+        },
+        "loop": {
+          "sample": "indo-animated.gif",
+          "sha256": "10edc3ed720311a0ce16b138a442073009a10c260ff37cd1f52bddb5ed6f0a3c",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.831,
+              "within_1px": 0.752
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.831,
+              "within_1px": 0.752
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "indo-ir.gif",
+          "sha256": "becae091dc914c57e8ace23102676d7b6f61db17c49f25cd81740d6643f1e52a",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.831,
+              "within_1px": 0.752
+            }
+          ]
+        }
+      }
+    },
+    "aust": {
+      "model": "merc",
+      "parameters": [
+        99.24070168418963,
+        6.926838139070668,
+        54.47459128457573,
+        6.6518601705566045
+      ],
+      "score": 0.7499117247973721,
+      "edge_stats": [
+        0.7304892905270586,
+        0.7831059390048154,
+        0.9968
+      ],
+      "validation": {
+        "still": {
+          "sample": "aust.gif",
+          "sha256": "903f7291e7a97349e3d0c71afef59e621ce05014e0acf3d2f05f3da4597df09e",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.737,
+              "within_1px": 0.788
+            }
+          ]
+        },
+        "loop": {
+          "sample": "aust-animated.gif",
+          "sha256": "4925f451c0035bf6ee409a6a0733490aec069d14824328ec9e7b6ec1863b7d38",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.737,
+              "within_1px": 0.788
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.736,
+              "within_1px": 0.789
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "aust-ir.gif",
+          "sha256": "ccba9690c4b94075317f8655411d0eeaef4820a136de7a9f6b1d0c083754e005",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.736,
+              "within_1px": 0.789
+            }
+          ]
+        }
+      }
+    },
+    "eurm": {
+      "model": "merc",
+      "parameters": [
+        -28.010057938301117,
+        6.944569715861373,
+        725.5563873266151,
+        6.941144783920587
+      ],
+      "score": 1.1173283910992515,
+      "edge_stats": [
+        1.0190522798568173,
+        0.7019328585961343,
+        0.983
+      ],
+      "validation": {
+        "still": {
+          "sample": "eurm.gif",
+          "sha256": "a35d2ec26c19917bd7f3ad2f7fa94a088510e62e2e87efb9bdbc77b63ef878ab",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.01,
+              "within_1px": 0.704
+            }
+          ]
+        },
+        "loop": {
+          "sample": "eurm-animated.gif",
+          "sha256": "547cf9af60444f375aecdb346ea0cca8be5586cc9178871b71fbcf80a2d53b88",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.01,
+              "within_1px": 0.704
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.01,
+              "within_1px": 0.703
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "eurm-ir.gif",
+          "sha256": "1b204cca4b5f40174c84e26d7c5f0474205aee354dde297a903fb4fd5bab8170",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.01,
+              "within_1px": 0.703
+            }
+          ]
+        }
+      }
+    },
+    "canm": {
+      "model": "merc",
+      "parameters": [
+        -142.8620381649433,
+        6.9533578511641885,
+        716.1168504985947,
+        6.950316272058409
+      ],
+      "score": 1.1582958182750398,
+      "edge_stats": [
+        1.0700546600396503,
+        0.65569774527727,
+        0.9846
+      ],
+      "validation": {
+        "still": {
+          "sample": "canm.gif",
+          "sha256": "89b54c7ffe3d3bf455f0cb8fe9b7ef6e1c56ebf025a4e3861f2d251e96c8a62e",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.046,
+              "within_1px": 0.662
+            }
+          ]
+        },
+        "loop": {
+          "sample": "canm-animated.gif",
+          "sha256": "53bc0b69b4b2041fc78f8cf7a8a88dba8a940658d1b6ff0582d95517c3067976",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.046,
+              "within_1px": 0.662
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.046,
+              "within_1px": 0.661
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "canm-ir.gif",
+          "sha256": "010d5b859bbe67f193f9cc4ce48547ca18ddb25a3f39b774655b22e7c008993f",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 6.961,
+              "within_1px": 0.002
+            }
+          ],
+          "method": "Visual coastline overlay. The dark-border metric is not comparable on this IR palette."
+        }
+      }
+    },
+    "nz": {
+      "model": "merc",
+      "parameters": [
+        149.9677556661676,
+        10.666528694528141,
+        -571.1459558667018,
+        18.155391518410635
+      ],
+      "score": 0.25586712651324056,
+      "edge_stats": [
+        0.25586712651324056,
+        0.9547169811320755,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "nz.gif",
+          "sha256": "da505aa7928178f921f3371418ee60225f986786207a3c5b97d5dec4bf0f6628",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.284,
+              "within_1px": 0.952
+            }
+          ]
+        },
+        "loop": {
+          "sample": "nz-animated.gif",
+          "sha256": "e906ce87911cacbcb24fb821454f9c6dd336f39d3136e05e1c7d4a69253cfb75",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.288,
+              "within_1px": 0.952
+            },
+            {
+              "frame": 5,
+              "mean_px": 0.284,
+              "within_1px": 0.952
+            }
+          ]
+        },
+        "standard_ir": {
+          "sample": "nz-ir.gif",
+          "sha256": "a0afb2a97e1f1f253c4f0d4ec6a175228970e46513d941233734c3a3b5c0bb12",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 0.284,
+              "within_1px": 0.952
+            }
+          ]
+        }
+      }
+    },
+    "hi_": {
+      "model": "merc",
+      "parameters": [
+        -167.26970330424237,
+        31.110258767228732,
+        845.2038834981391,
+        29.640155244446817
+      ],
+      "score": 1.660338008054298,
+      "edge_stats": [
+        1.660338008054298,
+        0.35555555555555557,
+        1.0
+      ],
+      "validation": {
+        "still": {
+          "sample": "hi_.gif",
+          "sha256": "561c5d4898c75ef6b8824f327dccae8953f3c2fad72b4d0aa4fcc38c6c4e55f8",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.671,
+              "within_1px": 0.359
+            }
+          ]
+        },
+        "loop": {
+          "sample": "hi_-animated.gif",
+          "sha256": "58c679163dfa743a8bd5e007d45ae0ec4ea92249324bc514a351f5b9c1a90d09",
+          "checks": [
+            {
+              "frame": 0,
+              "mean_px": 1.671,
+              "within_1px": 0.359
+            },
+            {
+              "frame": 5,
+              "mean_px": 1.671,
+              "within_1px": 0.359
+            }
+          ]
+        }
+      }
+    }
+  }
+}
